@@ -10,6 +10,21 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const MAX_FILE_SIZE = 500 * 1024; // 500KB máximo
 
+// Subida a Cloudinary
+const uploadToCloudinary = async (file: File): Promise<string> => {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'unsigned_preset'); // Debes crear un upload preset sin firmar en Cloudinary
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData
+  });
+  const data = await res.json();
+  return data.secure_url;
+};
+
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,10 +77,8 @@ export default function AdminProductsPage() {
     try {
       let images: string[] = [];
       if (imageFiles.length > 0) {
-        images = await Promise.all(imageFiles.map(async (file, idx) => {
-          const storageRef = ref(storage, `products/${formData.name.replace(/\s+/g, '_')}_${Date.now()}_${idx}`);
-          await uploadBytes(storageRef, file);
-          return await getDownloadURL(storageRef);
+        images = await Promise.all(imageFiles.map(async (file) => {
+          return await uploadToCloudinary(file);
         }));
       }
 

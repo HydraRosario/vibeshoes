@@ -40,9 +40,9 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link href={`/products/${product.id}`} className="block group focus:outline-none focus:ring-2 focus:ring-red-500 rounded-lg">
       <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform group-hover:scale-105 group-hover:shadow-2xl group-active:scale-100">
         <div className="aspect-w-1 aspect-h-1 relative">
-          {product.imageUrl ? (
+          {product.images && product.images.length > 0 ? (
             <Image
-              src={product.imageUrl}
+              src={product.images[0]}
               alt={product.name}
               fill
               className="object-cover group-hover:opacity-90 transition-opacity"
