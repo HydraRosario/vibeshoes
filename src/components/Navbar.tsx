@@ -46,9 +46,9 @@ export function Navbar() {
                 >
                   <ShoppingCartIcon className="h-6 w-6" />
                 </Link>
-                <div className="text-sm text-gray-200">
+                <Link href="/profile" className="text-sm text-gray-200 hover:underline">
                   {user.email}
-                </div>
+                </Link>
                 <button
                   onClick={() => logout()}
                   className="text-white hover:text-gray-200 transition-colors"

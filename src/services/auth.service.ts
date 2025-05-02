@@ -42,6 +42,18 @@ export const createUserProfile = async (user: User): Promise<boolean> => {
   }
 };
 
+export const updateUserProfile = async (
+  userId: string,
+  data: Partial<User>
+): Promise<void> => {
+  try {
+    await setDoc(doc(db, USERS_COLLECTION, userId), data, { merge: true });
+  } catch (error) {
+    console.error('Error al actualizar perfil de usuario:', error);
+    throw error;
+  }
+};
+
 export const login = authFeature.loginWithEmail;
 export const register = authFeature.registerWithEmail;
 export const logout = authFeature.logout;
