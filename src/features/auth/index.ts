@@ -59,6 +59,7 @@ export const loginWithGoogle = async () => {
         id: result.user.uid,
         email: result.user.email!,
         displayName: result.user.displayName || undefined,
+        photoURL: result.user.photoURL || undefined,
         isAdmin: ADMIN_EMAILS.includes(result.user.email!),
         createdAt: new Date(),
         updatedAt: new Date()
@@ -70,6 +71,13 @@ export const loginWithGoogle = async () => {
         updatedAt: userData.updatedAt.toISOString()
       });
     }
+
+    // Actualizar siempre displayName y photoURL en Firestore
+    await setDoc(doc(db, 'users', result.user.uid), {
+      displayName: result.user.displayName || undefined,
+      photoURL: result.user.photoURL || undefined,
+      updatedAt: new Date().toISOString(),
+    }, { merge: true });
 
     return result.user;
   } catch (error) {
