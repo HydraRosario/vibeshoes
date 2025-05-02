@@ -30,7 +30,7 @@ export function Navbar() {
           <div className="flex items-center space-x-6">
             {loading ? (
               <LoadingSpinner size="sm" className="text-white" />
-            ) : isAuthenticated ? (
+            ) : isAuthenticated && user ? (
               <>
                 {isAdmin && (
                   <Link
@@ -47,7 +47,7 @@ export function Navbar() {
                   <ShoppingCartIcon className="h-6 w-6" />
                 </Link>
                 <div className="text-sm text-gray-200">
-                  {user?.email}
+                  {user.email}
                 </div>
                 <button
                   onClick={() => logout()}

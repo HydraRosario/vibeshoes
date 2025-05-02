@@ -137,159 +137,134 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold mb-8">Gestión de Productos</h1>
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-100">
+      <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
+        <h1 className="text-4xl font-extrabold mb-10 text-center text-gray-900 drop-shadow-lg">Gestión de Productos</h1>
 
-      {/* Formulario */}
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Nombre del Producto
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Precio
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData({...formData, price: e.target.value})}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Stock
-            </label>
-            <input
-              type="number"
-              value={formData.stock}
-              onChange={(e) => setFormData({...formData, stock: e.target.value})}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Imagen del Producto
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="mt-1 block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-red-50 file:text-red-700
-                hover:file:bg-red-100"
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              Tamaño máximo: 500KB. Formatos: JPG, PNG, GIF
-            </p>
-            {imagePreview && (
-              <div className="mt-2">
-                <img
-                  src={imagePreview}
-                  alt="Vista previa"
-                  className="h-32 w-32 object-cover rounded-md"
-                />
-              </div>
-            )}
-          </div>
-
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Descripción
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-              rows={3}
-            />
-          </div>
-        </div>
-
-        <div className="mt-6 flex justify-end space-x-3">
-          {editingProduct && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-            >
-              Cancelar
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-400"
-          >
-            {loading ? (
-              <LoadingSpinner size="sm" className="text-white" />
-            ) : editingProduct ? (
-              'Actualizar Producto'
-            ) : (
-              'Crear Producto'
-            )}
-          </button>
-        </div>
-      </form>
-
-      {/* Lista de Productos */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul className="divide-y divide-gray-200">
-          {products.map((product) => (
-            <li key={product.id} className="px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center">
-                {product.imageUrl && (
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="h-16 w-16 rounded-md object-cover mr-4"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
-                    }}
-                  />
-                )}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
-                  <p className="text-sm text-gray-500">${product.price} - Stock: {product.stock}</p>
+        {/* Formulario */}
+        <form onSubmit={handleSubmit} className="bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-2xl mb-12 border border-red-100 animate-fade-in-up">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <label className="block text-base font-semibold text-gray-700 mb-1">Nombre del Producto</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="input-field mt-1 bg-gray-50"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-base font-semibold text-gray-700 mb-1">Precio</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({...formData, price: e.target.value})}
+                className="input-field mt-1 bg-gray-50"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-base font-semibold text-gray-700 mb-1">Stock</label>
+              <input
+                type="number"
+                value={formData.stock}
+                onChange={(e) => setFormData({...formData, stock: e.target.value})}
+                className="input-field mt-1 bg-gray-50"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-base font-semibold text-gray-700 mb-1">Imagen del Producto</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+              />
+              <p className="mt-1 text-xs text-gray-400">Tamaño máximo: 500KB. Formatos: JPG, PNG, GIF</p>
+              {imagePreview && (
+                <div className="mt-2">
+                  <img src={imagePreview} alt="Vista previa" className="h-32 w-32 object-cover rounded-lg border border-gray-200 shadow" />
                 </div>
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => handleEdit(product)}
-                  className="text-indigo-600 hover:text-indigo-900"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  Eliminar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+              )}
+            </div>
+            <div className="col-span-2">
+              <label className="block text-base font-semibold text-gray-700 mb-1">Descripción</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="input-field mt-1 bg-gray-50"
+                rows={3}
+              />
+            </div>
+          </div>
+          <div className="mt-8 flex justify-end space-x-4">
+            {editingProduct && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="btn-secondary border border-gray-300 shadow-sm"
+              >
+                Cancelar
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary text-lg font-bold px-8 py-3 shadow-lg hover:scale-105 transition-transform duration-150"
+            >
+              {loading ? (
+                <LoadingSpinner size="sm" className="text-white" />
+              ) : editingProduct ? (
+                'Actualizar Producto'
+              ) : (
+                'Crear Producto'
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Lista de Productos */}
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-red-100 animate-fade-in-up">
+          <ul className="divide-y divide-gray-200">
+            {products.map((product, idx) => (
+              <li key={product.id} style={{ animationDelay: `${idx * 60}ms` }} className="flex items-center justify-between px-8 py-6 group hover:bg-red-50 transition-colors animate-fade-in-up">
+                <div className="flex items-center">
+                  {product.imageUrl && (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="h-16 w-16 rounded-lg object-cover mr-6 border border-gray-200 shadow"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
+                      }}
+                    />
+                  )}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition-colors">{product.name}</h3>
+                    <p className="text-sm text-gray-500">${product.price} - Stock: {product.stock}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => handleEdit(product)}
+                    className="px-4 py-2 rounded-md font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 shadow transition-colors"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product.id)}
+                    className="px-4 py-2 rounded-md font-semibold text-white bg-red-700 hover:bg-red-800 shadow transition-colors"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
