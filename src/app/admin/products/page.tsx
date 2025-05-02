@@ -13,6 +13,7 @@ const MAX_FILE_SIZE = 500 * 1024; // 500KB máximo
 // Subida a Cloudinary
 const uploadToCloudinary = async (file: File): Promise<string> => {
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  if (!cloudName) throw new Error('Cloudinary cloud name is not set');
   const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
   const formData = new FormData();
   formData.append('file', file);
@@ -87,7 +88,7 @@ export default function AdminProductsPage() {
         description: formData.description,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
-        images
+        images: images || [] // Nunca undefined
       };
 
       if (editingProduct) {
