@@ -5,6 +5,8 @@ import { Product } from '@/types/product';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '@/features/products';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import toast from 'react-hot-toast';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const MAX_FILE_SIZE = 500 * 1024; // 500KB máximo
 
@@ -12,14 +14,21 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    price: string;
+    stock: string;
+    images: string[];
+  }>({
     name: '',
     description: '',
     price: '',
     stock: '',
-    imageUrl: ''
+    images: []
   });
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   useEffect(() => {
     loadProducts();
@@ -37,29 +46,13 @@ export default function AdminProductsPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error('La imagen es demasiado grande. Máximo 500KB');
-      return;
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => file.size <= MAX_FILE_SIZE && file.type.startsWith('image/'));
+    if (validFiles.length !== files.length) {
+      toast.error('Algunas imágenes son demasiado grandes o no son válidas. Máximo 500KB por imagen.');
     }
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor selecciona un archivo de imagen válido');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setFormData(prev => ({ ...prev, imageUrl: base64String }));
-      setImagePreview(base64String);
-    };
-    reader.onerror = () => {
-      toast.error('Error al leer el archivo');
-    };
-    reader.readAsDataURL(file);
+    setImageFiles(validFiles);
+    setImagePreviews(validFiles.map(file => URL.createObjectURL(file)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,12 +60,21 @@ export default function AdminProductsPage() {
     setLoading(true);
 
     try {
+      let images: string[] = [];
+      if (imageFiles.length > 0) {
+        images = await Promise.all(imageFiles.map(async (file, idx) => {
+          const storageRef = ref(storage, `products/${formData.name.replace(/\s+/g, '_')}_${Date.now()}_${idx}`);
+          await uploadBytes(storageRef, file);
+          return await getDownloadURL(storageRef);
+        }));
+      }
+
       const productData: Partial<Product> = {
         name: formData.name,
         description: formData.description,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
-        imageUrl: formData.imageUrl
+        images
       };
 
       if (editingProduct) {
@@ -99,9 +101,10 @@ export default function AdminProductsPage() {
       description: product.description || '',
       price: product.price.toString(),
       stock: product.stock.toString(),
-      imageUrl: product.imageUrl || ''
+      images: product.images || []
     });
-    setImagePreview(product.imageUrl || '');
+    setImagePreviews(product.images || []);
+    setImageFiles([]);
   };
 
   const handleDelete = async (id: string) => {
@@ -122,10 +125,11 @@ export default function AdminProductsPage() {
       description: '',
       price: '',
       stock: '',
-      imageUrl: ''
+      images: []
     });
     setEditingProduct(null);
-    setImagePreview('');
+    setImagePreviews([]);
+    setImageFiles([]);
   };
 
   if (loading && !editingProduct) {
@@ -176,17 +180,20 @@ export default function AdminProductsPage() {
               />
             </div>
             <div>
-              <label className="block text-base font-semibold text-gray-700 mb-1">Imagen del Producto</label>
+              <label className="block text-base font-semibold text-gray-700 mb-1">Imágenes del Producto</label>
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageChange}
                 className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
               />
-              <p className="mt-1 text-xs text-gray-400">Tamaño máximo: 500KB. Formatos: JPG, PNG, GIF</p>
-              {imagePreview && (
-                <div className="mt-2">
-                  <img src={imagePreview} alt="Vista previa" className="h-32 w-32 object-cover rounded-lg border border-gray-200 shadow" />
+              <p className="mt-1 text-xs text-gray-400">Puedes seleccionar varias imágenes. Máximo 500KB por imagen.</p>
+              {imagePreviews.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {imagePreviews.map((src, idx) => (
+                    <img key={idx} src={src} alt={`Vista previa ${idx+1}`} className="h-24 w-24 object-cover rounded-lg border border-gray-200 shadow" />
+                  ))}
                 </div>
               )}
             </div>
@@ -232,17 +239,22 @@ export default function AdminProductsPage() {
             {products.map((product, idx) => (
               <li key={product.id} style={{ animationDelay: `${idx * 60}ms` }} className="flex items-center justify-between px-8 py-6 group hover:bg-red-50 transition-colors animate-fade-in-up">
                 <div className="flex items-center">
-                  {product.imageUrl && (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="h-16 w-16 rounded-lg object-cover mr-6 border border-gray-200 shadow"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
-                      }}
-                    />
+                  {product.images && product.images.length > 0 && (
+                    <div className="flex space-x-2">
+                      {product.images.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={product.name}
+                          className="h-16 w-16 rounded-lg object-cover border border-gray-200 shadow"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
+                          }}
+                        />
+                      ))}
+                    </div>
                   )}
-                  <div>
+                  <div className="ml-4">
                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition-colors">{product.name}</h3>
                     <p className="text-sm text-gray-500">${product.price} - Stock: {product.stock}</p>
                   </div>

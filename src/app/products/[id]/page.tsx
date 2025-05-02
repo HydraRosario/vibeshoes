@@ -69,10 +69,22 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
       <div className="grid md:grid-cols-2 gap-10 items-start">
-        {/* Galería de imágenes (por ahora solo una imagen) */}
-        <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center">
-          {product.imageUrl ? (
-            <Image src={product.imageUrl} alt={product.name} width={400} height={400} className="rounded-lg object-cover w-full h-96" />
+        {/* Galería de imágenes */}
+        <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center w-full">
+          {product.images && product.images.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              {product.images.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img}
+                  alt={product.name + ' ' + (idx + 1)}
+                  className="rounded-lg object-cover w-full h-64 border border-gray-200 shadow"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
+                  }}
+                />
+              ))}
+            </div>
           ) : (
             <div className="w-full h-96 bg-gray-200 flex items-center justify-center rounded-lg">
               <span className="text-gray-400">Sin imagen</span>
