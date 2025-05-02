@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { LoadingSpinner } from './LoadingSpinner';
 
 export function Navbar() {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout, loading } = useAuth();
 
   return (
     <nav className="bg-red-700 text-white shadow-lg">
@@ -27,7 +28,9 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center space-x-6">
-            {isAuthenticated ? (
+            {loading ? (
+              <LoadingSpinner size="sm" className="text-white" />
+            ) : isAuthenticated ? (
               <>
                 {isAdmin && (
                   <Link

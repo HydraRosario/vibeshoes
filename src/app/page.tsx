@@ -2,42 +2,27 @@
 
 import { ProductCard } from '@/components/ProductCard';
 import { Product } from '@/types/product';
-
-// Test data - replace with actual data from Firebase later
-const testProducts: Product[] = [
-  {
-    id: '1',
-    name: 'Zapatilla Cool 1',
-    price: 120.00,
-    stock: 15,
-    description: 'Zapatillas deportivas con estilo único.',
-    imageUrl: 'https://placehold.co/400x400/sunset/white?text=Cool+1',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '2',
-    name: 'Corredora Elegante',
-    price: 150.00,
-    stock: 8,
-    description: 'Zapatillas perfectas para running.',
-    imageUrl: 'https://placehold.co/400x400/gray/white?text=Elegante',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  },
-  {
-    id: '3',
-    name: 'Clásica Bota Alta',
-    price: 100.00,
-    stock: 12,
-    description: 'Bota clásica para todo uso.',
-    imageUrl: 'https://placehold.co/400x400/city/white?text=Clasica',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-];
+import { useEffect, useState } from 'react';
+import { getProducts } from '@/features/products';
 
 export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const productsData = await getProducts();
+        setProducts(productsData);
+      } catch (error) {
+        // Puedes mostrar un mensaje de error si quieres
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -54,11 +39,19 @@ export default function Home() {
       {/* Featured Products */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 className="text-3xl font-bold mb-8 text-center">Zapatillas Destacadas</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center min-h-[200px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : products.length === 0 ? (
+          <p className="text-center text-gray-500">No hay productos disponibles.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
         <div className="text-center mt-12">
           <a href="/products" className="inline-block bg-gray-900 text-white px-8 py-3 rounded-md font-semibold hover:bg-gray-800 transition-colors">
             Ver Todos los Productos
