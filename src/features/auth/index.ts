@@ -70,6 +70,10 @@ export const loginWithGoogle = async () => {
         createdAt: userData.createdAt.toISOString(),
         updatedAt: userData.updatedAt.toISOString()
       });
+      // Marcar primer login en localStorage
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('first_login', 'true');
+      }
     }
 
     // Actualizar siempre displayName y photoURL en Firestore

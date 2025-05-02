@@ -19,7 +19,14 @@ export default function LoginPage() {
     try {
       const result = await loginWithGoogle();
       if (result.success) {
-        router.push('/');
+        // Redirigir a /profile si es el primer login
+        const user = window.localStorage.getItem('first_login');
+        if (user === 'true') {
+          window.localStorage.removeItem('first_login');
+          router.push('/profile');
+        } else {
+          router.push('/');
+        }
       } else {
         setError(result.error || 'Error al iniciar sesión con Google');
       }
