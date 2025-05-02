@@ -1,0 +1,296 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Product } from '@/types/product';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '@/features/products';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import toast from 'react-hot-toast';
+
+const MAX_FILE_SIZE = 500 * 1024; // 500KB máximo
+
+export default function AdminProductsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingProduct, setEditingProduct] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    stock: '',
+    imageUrl: ''
+  });
+  const [imagePreview, setImagePreview] = useState<string>('');
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      const data = await getProducts();
+      setProducts(data);
+    } catch (error) {
+      toast.error('Error al cargar productos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('La imagen es demasiado grande. Máximo 500KB');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setFormData(prev => ({ ...prev, imageUrl: base64String }));
+      setImagePreview(base64String);
+    };
+    reader.onerror = () => {
+      toast.error('Error al leer el archivo');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const productData: Partial<Product> = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        imageUrl: formData.imageUrl
+      };
+
+      if (editingProduct) {
+        await updateProduct(editingProduct, productData);
+        toast.success('Producto actualizado');
+      } else {
+        await createProduct(productData);
+        toast.success('Producto creado');
+      }
+
+      resetForm();
+      await loadProducts();
+    } catch (error) {
+      toast.error(editingProduct ? 'Error al actualizar producto' : 'Error al crear producto');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product.id);
+    setFormData({
+      name: product.name,
+      description: product.description || '',
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      imageUrl: product.imageUrl || ''
+    });
+    setImagePreview(product.imageUrl || '');
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Estás seguro de eliminar este producto?')) {
+      try {
+        await deleteProduct(id);
+        toast.success('Producto eliminado');
+        await loadProducts();
+      } catch (error) {
+        toast.error('Error al eliminar producto');
+      }
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      price: '',
+      stock: '',
+      imageUrl: ''
+    });
+    setEditingProduct(null);
+    setImagePreview('');
+  };
+
+  if (loading && !editingProduct) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <h1 className="text-3xl font-bold mb-8">Gestión de Productos</h1>
+
+      {/* Formulario */}
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Nombre del Producto
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Precio
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.price}
+              onChange={(e) => setFormData({...formData, price: e.target.value})}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Stock
+            </label>
+            <input
+              type="number"
+              value={formData.stock}
+              onChange={(e) => setFormData({...formData, stock: e.target.value})}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Imagen del Producto
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="mt-1 block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-red-50 file:text-red-700
+                hover:file:bg-red-100"
+            />
+            <p className="mt-1 text-sm text-gray-500">
+              Tamaño máximo: 500KB. Formatos: JPG, PNG, GIF
+            </p>
+            {imagePreview && (
+              <div className="mt-2">
+                <img
+                  src={imagePreview}
+                  alt="Vista previa"
+                  className="h-32 w-32 object-cover rounded-md"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Descripción
+            </label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+              rows={3}
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 flex justify-end space-x-3">
+          {editingProduct && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            >
+              Cancelar
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-700 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-400"
+          >
+            {loading ? (
+              <LoadingSpinner size="sm" className="text-white" />
+            ) : editingProduct ? (
+              'Actualizar Producto'
+            ) : (
+              'Crear Producto'
+            )}
+          </button>
+        </div>
+      </form>
+
+      {/* Lista de Productos */}
+      <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <ul className="divide-y divide-gray-200">
+          {products.map((product) => (
+            <li key={product.id} className="px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center">
+                {product.imageUrl && (
+                  <img
+                    src={product.imageUrl}
+                    alt={product.name}
+                    className="h-16 w-16 rounded-md object-cover mr-4"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
+                    }}
+                  />
+                )}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">{product.name}</h3>
+                  <p className="text-sm text-gray-500">${product.price} - Stock: {product.stock}</p>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => handleEdit(product)}
+                  className="text-indigo-600 hover:text-indigo-900"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(product.id)}
+                  className="text-red-600 hover:text-red-900"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
