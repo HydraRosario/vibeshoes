@@ -81,6 +81,9 @@ export default function AdminProductsPage() {
         images = await Promise.all(imageFiles.map(async (file) => {
           return await uploadToCloudinary(file);
         }));
+      } else if (editingProduct) {
+        // Si no se suben nuevas imágenes y es edición, mantener las actuales
+        images = formData.images || [];
       }
 
       const productData: Partial<Product> = {
@@ -88,7 +91,7 @@ export default function AdminProductsPage() {
         description: formData.description,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
-        images: images || [] // Nunca undefined
+        images: images // Siempre se envía el array correcto
       };
 
       if (editingProduct) {
@@ -270,7 +273,7 @@ export default function AdminProductsPage() {
                   )}
                   <div className="ml-4">
                     <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition-colors">{product.name}</h3>
-                    <p className="text-sm text-gray-500">${product.price} - Stock: {product.stock}</p>
+                    <p className="text-sm text-gray-500">{product.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })} - Stock: {product.stock}</p>
                   </div>
                 </div>
                 <div className="flex space-x-3">

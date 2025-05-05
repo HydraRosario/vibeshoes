@@ -127,7 +127,7 @@ export default function CheckoutPage() {
                 <span>
                   {item.name} x {item.quantity}
                 </span>
-                <span>${item.price * item.quantity}</span>
+                <span>{item.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
               </div>
             ))}
             <div className="border-t mt-4 pt-4">

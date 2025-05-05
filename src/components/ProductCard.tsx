@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <p className="text-gray-600 mt-1 text-sm line-clamp-2">{product.description}</p>
           <div className="mt-4">
             <div className="flex justify-between items-center">
-              <span className="text-xl font-bold text-gray-900">${product.price.toFixed(2)}</span>
+              <span className="text-xl font-bold text-gray-900">{product.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
               <span className={`text-sm px-2 py-1 rounded-full ${
                 product.stock > 10 
                   ? 'bg-green-100 text-green-800' 

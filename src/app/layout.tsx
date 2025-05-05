@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Navbar } from '@/components/Navbar';
 import { Providers } from '@/components/Providers';
+import { FloatingCart } from '@/components/FloatingCart';
 import "./globals.css";
 
 const inter = Inter({
@@ -29,6 +30,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-grow">{children}</main>
           <Providers />
+          <FloatingCart />
         </Suspense>
       </body>
     </html>

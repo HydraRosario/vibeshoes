@@ -104,7 +104,9 @@ export default function CartPage() {
                   
                   <div className="flex-1">
                     <h3 className="text-lg font-medium">{item.name}</h3>
-                    <p className="text-gray-600">${item.price}</p>
+                    <p className="text-gray-600">
+                      <span>{(item.price * item.quantity).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
+                    </p>
                   </div>
 
                   <div className="flex items-center space-x-4">
@@ -145,7 +147,7 @@ export default function CartPage() {
             <div className="p-6 bg-gray-50">
               <div className="flex justify-between items-center">
                 <span className="text-xl font-medium">Total:</span>
-                <span className="text-2xl font-bold">${cart.total}</span>
+                <span className="text-2xl font-bold">{cart?.total ? cart.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }) : '$0'}</span>
               </div>
 
               <button

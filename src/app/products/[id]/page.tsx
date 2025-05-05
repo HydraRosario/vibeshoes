@@ -96,7 +96,7 @@ export default function ProductDetailPage() {
           <h1 className="text-3xl font-bold mb-4 text-gray-900">{product.name}</h1>
           <p className="text-lg text-gray-700 mb-6">{product.description}</p>
           <div className="flex items-center mb-6">
-            <span className="text-2xl font-bold text-red-700 mr-4">${product.price.toFixed(2)}</span>
+            <span className="text-2xl font-bold text-red-700 mr-4">{product.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
             <span className={`text-sm px-2 py-1 rounded-full ${
               product.stock > 10
                 ? 'bg-green-100 text-green-800'
