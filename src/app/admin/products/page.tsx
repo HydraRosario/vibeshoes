@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Product, Variation } from '@/types/product';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '@/features/products';
 import { DragDropImages } from './DragDropImages';
@@ -116,25 +116,23 @@ export default function AdminProductsPage() {
   };
 
   const handleAddVariation = () => {
-    if (!newVariation.color || !newVariation.stock) return;
-    
+    if (!newVariation.color) {
+      alert('Debes especificar un color');
+      return;
+    }
+    if (newVariation.tallesDisponibles.length === 0) {
+      alert('Debes especificar al menos un talle');
+      return;
+    }
     if (editingVariationIdx !== null) {
       // Estamos editando una variación existente
       const updatedVariations = [...formData.variations];
       updatedVariations[editingVariationIdx] = {
-        color: newVariation.color,
-        tallesDisponibles: newVariation.tallesDisponibles,
-        images: newVariation.images,
+        ...newVariation,
         stock: Number(newVariation.stock)
       };
-      
-      setFormData({
-        ...formData,
-        variations: updatedVariations
-      });
-      
+      setFormData({ ...formData, variations: updatedVariations });
       setEditingVariationIdx(null);
-      toast.success('Variación actualizada');
     } else {
       // Estamos añadiendo una nueva variación
       setFormData({
@@ -142,19 +140,63 @@ export default function AdminProductsPage() {
         variations: [
           ...formData.variations,
           {
-            color: newVariation.color,
-            tallesDisponibles: newVariation.tallesDisponibles,
-            images: newVariation.images,
+            ...newVariation,
             stock: Number(newVariation.stock)
           }
         ]
       });
-      toast.success('Variación agregada');
     }
-    
+    // Resetear el formulario de variación
     setNewVariation({ color: '', tallesDisponibles: [35,36,37,38,39,40,41,42,43,44], images: [], stock: '' });
   };
-  
+
+  // Estado para el arrastrar y soltar
+  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
+  const [dragOverItemIndex, setDragOverItemIndex] = useState<number | null>(null);
+
+  // Función para manejar el inicio del arrastre
+  const handleDragStart = (index: number) => {
+    setDraggedItemIndex(index);
+  };
+
+  // Función para manejar cuando se arrastra sobre otro elemento
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    setDragOverItemIndex(index);
+  };
+
+  // Función para manejar cuando se suelta el elemento
+  const handleDrop = () => {
+    if (draggedItemIndex === null || dragOverItemIndex === null) return;
+    if (draggedItemIndex === dragOverItemIndex) return;
+
+    // Crear una copia de las variaciones
+    const variations = [...formData.variations];
+    
+    // Eliminar el elemento arrastrado de su posición original
+    const draggedItem = variations[draggedItemIndex];
+    variations.splice(draggedItemIndex, 1);
+    
+    // Insertar el elemento en su nueva posición
+    variations.splice(dragOverItemIndex, 0, draggedItem);
+
+    // Actualizar el estado con el nuevo orden
+    setFormData({
+      ...formData,
+      variations: variations
+    });
+
+    // Limpiar los estados
+    setDraggedItemIndex(null);
+    setDragOverItemIndex(null);
+  };
+
+  // Función para manejar cuando se cancela el arrastre
+  const handleDragEnd = () => {
+    setDraggedItemIndex(null);
+    setDragOverItemIndex(null);
+  };
+
   const handleEditVariation = (idx: number) => {
     const variation = formData.variations[idx];
     setNewVariation({
@@ -491,9 +533,22 @@ export default function AdminProductsPage() {
             {formData.variations.length > 0 && (
               <ul className="mt-4">
                 {formData.variations.map((v, idx) => (
-                  <li key={idx} className="mb-2 p-4 border border-gray-200 rounded-lg flex items-center gap-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <li 
+                    key={idx}
+                    draggable
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    onDrop={handleDrop}
+                    className={`mb-2 p-4 border rounded-lg flex items-center gap-4 transition-colors cursor-grab ${draggedItemIndex === idx ? 'bg-red-100 border-red-300 shadow-lg opacity-60' : dragOverItemIndex === idx ? 'bg-red-50 border-red-200' : 'bg-gray-50 hover:bg-gray-100 border-gray-200'}`}
+                  >
                     <div className="flex-1">
-                      <span className="font-semibold text-gray-800">Color: {v.color}</span>
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                        </svg>
+                        <span className="font-semibold text-gray-800">Color: {v.color}</span>
+                      </div>
                       <div className="flex flex-wrap gap-2 mt-1">
                         <span className="text-sm text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">Talles: {Array.isArray(v.tallesDisponibles) ? v.tallesDisponibles.join(', ') : 'No especificados'}</span>
                         <span className="text-sm text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">Stock: {v.stock}</span>
