@@ -41,9 +41,7 @@ export default function ProductsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product}>
-              <span className="text-xl font-bold text-gray-900">{product.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
-            </ProductCard>
+            <ProductCard key={product.id} product={product} showVariationsGrid={true} />
           ))}
         </div>
       )}

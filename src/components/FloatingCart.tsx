@@ -7,6 +7,40 @@ import { useRealtimeCart } from '@/hooks/useRealtimeCart';
 import { ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from './LoadingSpinner';
 import { usePathname } from 'next/navigation';
+import { TrashIcon } from '@heroicons/react/24/outline';
+import { removeFromCart } from '@/features/cart';
+import toast from 'react-hot-toast';
+
+function CartItemRow({ item, userId }: { item: any; userId: string }) {
+  const [removing, setRemoving] = useState(false);
+  const handleRemove = async () => {
+    setRemoving(true);
+    const ok = await removeFromCart(userId, item.productId);
+    setRemoving(false);
+    if (!ok) toast.error('No se pudo eliminar el producto del carrito');
+  };
+  return (
+    <li className="flex items-center py-2 gap-3">
+      {item.imageUrl && (
+        <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded object-cover border" />
+      )}
+      <div className="flex-1">
+        <div className="font-medium text-gray-800 text-sm line-clamp-1">{item.name}</div>
+        <div className="text-xs text-gray-500">x{item.quantity} · {item.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</div>
+      </div>
+      <div className="font-semibold text-gray-900 text-sm">{(item.price * item.quantity).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</div>
+      <button
+        className="ml-2 p-1 rounded hover:bg-red-100 disabled:opacity-60"
+        onClick={handleRemove}
+        disabled={removing}
+        aria-label="Eliminar"
+        title="Eliminar"
+      >
+        {removing ? <LoadingSpinner size="sm" /> : <TrashIcon className="w-5 h-5 text-red-600" />}
+      </button>
+    </li>
+  );
+}
 
 export function FloatingCart() {
   const { user, isAuthenticated } = useAuth();
@@ -14,7 +48,7 @@ export function FloatingCart() {
   const pathname = usePathname();
 
   if (pathname === '/cart' || pathname.startsWith('/admin')) return null;
-  if (!isAuthenticated || !user || !cart || !cart.items.length === 0) return null;
+  if (!isAuthenticated || !user || !cart || cart.items.length === 0) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-80 max-w-xs bg-white shadow-2xl rounded-xl border border-red-200 p-4 animate-fade-in">
@@ -32,16 +66,7 @@ export function FloatingCart() {
       ) : (
         <ul className="divide-y divide-gray-100 max-h-40 overflow-y-auto mb-2">
           {cart.items.slice(0, 3).map(item => (
-            <li key={item.productId} className="flex items-center py-2 gap-3">
-              {item.imageUrl && (
-                <img src={item.imageUrl} alt={item.name} className="w-10 h-10 rounded object-cover border" />
-              )}
-              <div className="flex-1">
-                <div className="font-medium text-gray-800 text-sm line-clamp-1">{item.name}</div>
-                <div className="text-xs text-gray-500">x{item.quantity} · {item.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</div>
-              </div>
-              <div className="font-semibold text-gray-900 text-sm">{(item.price * item.quantity).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</div>
-            </li>
+            <CartItemRow key={item.productId + '-' + item.selectedColor + '-' + item.selectedSize} item={item} userId={user.id} />
           ))}
         </ul>
       )}

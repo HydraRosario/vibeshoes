@@ -10,6 +10,46 @@ import { useAuth } from '@/hooks/useAuth';
 import { addToCart } from '@/features/cart';
 import toast from 'react-hot-toast';
 
+function ProductImageCarousel({ images, alt }: { images: string[]; alt: string }) {
+  const [idx, setIdx] = useState(0);
+  if (!images || images.length === 0) return null;
+  return (
+    <div className="relative w-full aspect-square max-w-lg mx-auto flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden h-[400px] md:h-[500px]">
+      <button
+        className="absolute left-1 top-1/2 -translate-y-1/2 bg-white/80 rounded-full z-10 hover:bg-white border border-gray-300 w-7 h-7 text-xs"
+        style={{ padding: 0 }}
+        onClick={e => { e.stopPropagation(); setIdx(i => i === 0 ? images.length - 1 : i - 1); }}
+        aria-label="Imagen anterior"
+        type="button"
+      >&#60;</button>
+      <Image
+        src={images[idx]}
+        alt={alt}
+        fill
+        sizes="(max-width: 768px) 100vw, 500px"
+        className="object-cover rounded-lg"
+        priority={idx === 0}
+      />
+      <button
+        className="absolute right-1 top-1/2 -translate-y-1/2 bg-white/80 rounded-full z-10 hover:bg-white border border-gray-300 w-7 h-7 text-xs"
+        style={{ padding: 0 }}
+        onClick={e => { e.stopPropagation(); setIdx(i => i === images.length - 1 ? 0 : i + 1); }}
+        aria-label="Imagen siguiente"
+        type="button"
+      >&#62;</button>
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+        {images.map((_, i) => (
+          <span
+            key={i}
+            className={`w-2 h-2 rounded-full ${idx === i ? 'bg-red-600' : 'bg-gray-300'}`}
+            style={{ display: 'inline-block' }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ProductDetailPage() {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
@@ -18,6 +58,8 @@ export default function ProductDetailPage() {
   const [error, setError] = useState('');
   const [related, setRelated] = useState<Product[]>([]);
   const { isAuthenticated, user } = useAuth();
+  const [selectedColorIdx, setSelectedColorIdx] = useState(0);
+  const [selectedTalle, setSelectedTalle] = useState<string | number>('');
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -37,23 +79,10 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = async () => {
-    if (!isAuthenticated || !user) {
-      window.location.href = '/login';
-      return;
-    }
-    setAdding(true);
-    try {
-      if (product) {
-        await addToCart(user.id, product, 1);
-        toast.success('¡Producto agregado al carrito!');
-      }
-    } catch {
-      toast.error('Error al añadir al carrito');
-    } finally {
-      setAdding(false);
-    }
-  };
+  useEffect(() => {
+    // Reset talle seleccionado al cambiar color
+    setSelectedTalle('');
+  }, [selectedColorIdx]);
 
   if (loading) {
     return (
@@ -66,57 +95,109 @@ export default function ProductDetailPage() {
     return <div className="text-center py-16 text-gray-500">Producto no encontrado.</div>;
   }
 
+  // Only access product.variations after confirming product is not null
+  const selectedVariation = product.variations?.[selectedColorIdx];
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
       <div className="grid md:grid-cols-2 gap-10 items-start">
         {/* Galería de imágenes */}
         <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center w-full">
-          {product.images && product.images.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              {product.images.map((img, idx) => (
-                <img
-                  key={idx}
-                  src={img}
-                  alt={product.name + ' ' + (idx + 1)}
-                  className="rounded-lg object-cover w-full h-64 border border-gray-200 shadow"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
-                  }}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="w-full h-96 bg-gray-200 flex items-center justify-center rounded-lg">
-              <span className="text-gray-400">Sin imagen</span>
-            </div>
-          )}
+          {selectedVariation && selectedVariation.images && selectedVariation.images.length > 0 ? (
+  <ProductImageCarousel images={selectedVariation.images} alt={product.name + ' ' + selectedVariation.color} />
+) : (
+  <div className="w-full h-96 bg-gray-200 flex items-center justify-center rounded-lg">
+    <span className="text-gray-400">Sin imagen</span>
+  </div>
+)}
         </div>
         {/* Detalles */}
         <div>
           <h1 className="text-3xl font-bold mb-4 text-gray-900">{product.name}</h1>
           <p className="text-lg text-gray-700 mb-6">{product.description}</p>
-          <div className="flex items-center mb-6">
-            <span className="text-2xl font-bold text-red-700 mr-4">{product.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
-            <span className={`text-sm px-2 py-1 rounded-full ${
-              product.stock > 10
-                ? 'bg-green-100 text-green-800'
-                : product.stock > 0
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {product.stock > 10
-                ? 'En stock'
-                : product.stock > 0
-                ? `¡Solo ${product.stock} disponibles!`
-                : 'Sin stock'}
-            </span>
-          </div>
+          {/* Selector de color como dropdown y muestra de talles disponibles */}
+          {product.variations && product.variations.length > 0 && (
+            <div className="mb-4">
+              <div className="mb-4">
+                <div className="text-4xl font-extrabold text-green-600 mb-4">${typeof product.price === 'number' ? product.price.toLocaleString('es-AR') : 'Sin precio'}</div>
+                <label className="block font-semibold mb-1">Color:</label>
+                <div className="flex gap-4 mt-2">
+                  {product.variations.map((v, idx) => (
+                    <button
+                      key={v.color}
+                      type="button"
+                      title={v.color}
+                      className={`w-12 h-12 rounded-full border-4 flex items-center justify-center transition-all ${selectedColorIdx === idx ? 'border-red-600 scale-110' : 'border-gray-300'}`}
+                      style={{ background: v.images && v.images[0] ? `url('${v.images[0]}') center/cover no-repeat` : '#eee' }}
+                      onClick={e => { e.preventDefault(); setSelectedColorIdx(idx); }}
+                    >
+                      {!v.images || v.images.length === 0 ? (
+                        <span className="block w-6 h-6 bg-gray-300 rounded-full"></span>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+<div className="mt-2 text-sm text-gray-700">
+  <span className="font-semibold">Stock:</span> {selectedVariation?.stock}
+</div>
+<div className="mt-2 text-sm text-gray-700">
+  <span className="font-semibold">Talle:</span>
+  <select
+    className="input-field ml-2"
+    value={selectedTalle}
+    onChange={e => setSelectedTalle(e.target.value)}
+  >
+    <option value="">Seleccionar talle</option>
+    {[35,36,37,38,39,40,41,42,43,44].map((t) => (
+      <option key={t} value={t}>{t}</option>
+    ))}
+  </select>
+</div>
+            </div>
+          )}
           <button
-            onClick={handleAddToCart}
-            disabled={adding || product.stock <= 0}
+            onClick={async () => {
+              if (!isAuthenticated || !user) {
+                window.location.href = '/login';
+                return;
+              }
+              if (!selectedVariation) {
+                toast.error('Selecciona color');
+                return;
+              }
+              if (!selectedTalle) {
+                toast.error('Selecciona talle');
+                return;
+              }
+              if (selectedVariation.stock <= 0) {
+                toast.error('Sin stock para esta variación');
+                return;
+              }
+              setAdding(true);
+              try {
+                
+                
+                
+                await addToCart(user.id, {
+                  ...product,
+                  selectedColor: selectedVariation.color,
+                  selectedSize: selectedTalle,
+                  imageUrl: selectedVariation.images[0] || product.images?.[0] || '',
+                  price: typeof selectedVariation.price === 'number' ? selectedVariation.price : product.price,
+                  stock: selectedVariation.stock
+                }, 1);
+                toast.success('¡Producto agregado al carrito!');
+              } catch {
+                toast.error('Error al añadir al carrito');
+              } finally {
+                setAdding(false);
+              }
+            }}
+            disabled={adding || !selectedVariation || selectedVariation.stock <= 0}
             className="btn-primary w-full text-lg py-3 flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {adding ? <LoadingSpinner size="sm" className="text-white" /> : product.stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}
+            {adding ? <LoadingSpinner size="sm" className="text-white" /> : selectedVariation && selectedVariation.stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}
           </button>
         </div>
       </div>

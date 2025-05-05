@@ -1,9 +1,20 @@
 import { db } from '@/lib/firebase';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { Product } from '@/types/product';
+import { Product, ProductWithSelection } from '@/types/product';
 import { Cart, CartItem } from '@/types/cart';
 
 const CART_COLLECTION = 'carts';
+
+export const clearCart = async (userId: string): Promise<boolean> => {
+  try {
+    const cartRef = doc(db, CART_COLLECTION, userId);
+    await deleteDoc(cartRef);
+    return true;
+  } catch (error) {
+    console.error('Error al vaciar el carrito:', error);
+    return false;
+  }
+};
 
 export const getCart = async (userId: string): Promise<Cart | null> => {
   try {
@@ -23,7 +34,7 @@ export const getCart = async (userId: string): Promise<Cart | null> => {
 
 export const addToCart = async (
   userId: string, 
-  product: Product, 
+  product: ProductWithSelection, 
   quantity: number
 ): Promise<boolean> => {
   try {
@@ -36,7 +47,7 @@ export const addToCart = async (
     };
 
     const existingItemIndex = cart.items.findIndex(
-      item => item.productId === product.id
+      item => item.productId === product.id && item.selectedColor === product.selectedColor && item.selectedSize === product.selectedSize
     );
 
     if (existingItemIndex >= 0) {
@@ -47,7 +58,9 @@ export const addToCart = async (
         quantity,
         price: product.price,
         name: product.name,
-        imageUrl: product.imageUrl || ''
+        imageUrl: product.imageUrl,
+        selectedColor: product.selectedColor,
+        selectedSize: product.selectedSize
       });
     }
 
@@ -103,34 +116,33 @@ export const removeFromCart = async (
 export const updateCartItemQuantity = async (
   userId: string,
   productId: string,
-  quantity: number
+  quantity: number,
+  selectedColor?: string,
+  selectedSize?: string | number
 ): Promise<boolean> => {
   try {
     const cart = await getCart(userId);
     if (!cart) return false;
 
     const itemIndex = cart.items.findIndex(
-      item => item.productId === productId
+      item => item.productId === productId && item.selectedColor === (selectedColor || '') && item.selectedSize === (selectedSize || '')
     );
 
     if (itemIndex === -1) return false;
 
     if (quantity <= 0) {
-      return removeFromCart(userId, productId);
+      cart.items.splice(itemIndex, 1);
+    } else {
+      cart.items[itemIndex].quantity = quantity;
     }
-
-    cart.items[itemIndex].quantity = quantity;
     cart.total = calculateTotal(cart.items);
     cart.updatedAt = new Date();
 
     const cartRef = doc(db, CART_COLLECTION, userId);
-    
-    // Convert dates to timestamps for Firestore
     const cartData = {
       ...cart,
       updatedAt: cart.updatedAt.toISOString()
     };
-    
     await updateDoc(cartRef, cartData);
     return true;
   } catch (error) {
