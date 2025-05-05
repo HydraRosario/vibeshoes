@@ -24,7 +24,7 @@ function VariationCarousel({ variations, alt }: { variations: { images?: string[
       <button
         className="absolute left-1 top-1/2 -translate-y-1/2 bg-white/80 rounded-full z-10 hover:bg-white border border-gray-300 w-6 h-6 text-xs"
         style={{ padding: 0 }}
-        onClick={e => { e.stopPropagation(); setIdx(i => i === 0 ? images.length - 1 : i - 1); }}
+        onClick={e => { e.preventDefault(); e.stopPropagation(); setIdx(i => i === 0 ? images.length - 1 : i - 1); }}
         aria-label="Imagen anterior"
         type="button"
       >&#60;</button>
@@ -39,7 +39,7 @@ function VariationCarousel({ variations, alt }: { variations: { images?: string[
       <button
         className="absolute right-1 top-1/2 -translate-y-1/2 bg-white/80 rounded-full z-10 hover:bg-white border border-gray-300 w-6 h-6 text-xs"
         style={{ padding: 0 }}
-        onClick={e => { e.stopPropagation(); setIdx(i => i === images.length - 1 ? 0 : i + 1); }}
+        onClick={e => { e.preventDefault(); e.stopPropagation(); setIdx(i => i === images.length - 1 ? 0 : i + 1); }}
         aria-label="Imagen siguiente"
         type="button"
       >&#62;</button>
@@ -166,9 +166,8 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
       onKeyDown={e => { if(e.key === 'Enter') window.location.href = `/products/${product.id}`; }}
     >
       <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform group-hover:scale-105 group-hover:shadow-2xl group-active:scale-100">
-        <div className="relative w-full aspect-square bg-gray-100 rounded-t-lg overflow-hidden h-[220px] md:h-[300px]"
-          onClick={e => e.stopPropagation()} // Esto previene la navegación si se hace click dentro del carrousel
-        >
+        <div className="relative w-full aspect-square bg-gray-100 rounded-t-lg overflow-hidden h-[220px] md:h-[300px]">
+          {/* Eliminamos el onClick que previene la navegación en toda la imagen */}
           {product.variations && product.variations.length > 0 ? (
             <VariationCarousel
               variations={product.variations}

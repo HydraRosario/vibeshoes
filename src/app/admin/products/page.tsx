@@ -31,6 +31,9 @@ const uploadToCloudinary = async (file: File): Promise<string> => {
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'none'>('none');
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
@@ -60,10 +63,41 @@ export default function AdminProductsPage() {
     loadProducts();
   }, []);
 
+  // Efecto para filtrar y ordenar productos
+  useEffect(() => {
+    let result = [...products];
+    
+    // Aplicar filtro de búsqueda
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(product => 
+        product.name.toLowerCase().includes(term) ||
+        product.description?.toLowerCase().includes(term)
+      );
+    }
+    
+    // Aplicar ordenamiento
+    if (sortOrder !== 'none') {
+      result.sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+        
+        if (sortOrder === 'asc') {
+          return nameA.localeCompare(nameB);
+        } else {
+          return nameB.localeCompare(nameA);
+        }
+      });
+    }
+    
+    setFilteredProducts(result);
+  }, [products, searchTerm, sortOrder]);
+
   const loadProducts = async () => {
     try {
       const data = await getProducts();
       setProducts(data);
+      setFilteredProducts(data);
     } catch (error) {
       toast.error('Error al cargar productos');
     } finally {
@@ -548,10 +582,65 @@ export default function AdminProductsPage() {
           </div>
         </form>
 
+        {/* Filtros y búsqueda */}
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-red-100 p-4 mb-6 animate-fade-in-up">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="w-full md:w-1/2">
+              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Buscar productos</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  id="search"
+                  placeholder="Buscar por nombre o descripción..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            <div className="w-full md:w-auto">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ordenar por nombre</label>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setSortOrder('asc')}
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${sortOrder === 'asc' ? 'bg-red-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                >
+                  A-Z
+                </button>
+                <button
+                  onClick={() => setSortOrder('desc')}
+                  className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${sortOrder === 'desc' ? 'bg-red-700 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                >
+                  Z-A
+                </button>
+                {sortOrder !== 'none' && (
+                  <button
+                    onClick={() => setSortOrder('none')}
+                    className="px-4 py-2 rounded-md font-medium text-sm bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                  >
+                    Limpiar
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        
         {/* Lista de productos */}
         <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-red-100 animate-fade-in-up">
           <ul className="divide-y divide-gray-200">
-            {products.map((product, idx) => {
+            {filteredProducts.length === 0 ? (
+              <li className="py-10 text-center">
+                <p className="text-gray-500 text-lg">No se encontraron productos{searchTerm ? ` que coincidan con "${searchTerm}"` : ''}.</p>
+              </li>
+            ) : (
+              filteredProducts.map((product, idx) => {
               // Calcular stock total sumando el stock de todas las variaciones
               const totalStock = product.variations && product.variations.length > 0
                 ? product.variations.reduce((acc, v) => acc + (typeof v.stock === 'number' ? v.stock : 0), 0)
@@ -598,7 +687,8 @@ export default function AdminProductsPage() {
                   </div>
                 </li>
               );
-            })}
+            }))
+            }
           </ul>
         </div>
       </div>

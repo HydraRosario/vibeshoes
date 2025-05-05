@@ -182,32 +182,7 @@ export default function ProfilePage() {
           />
         </label>
       </div>
-      <div className="mb-8">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Selecciona tu dirección en el mapa</label>
-        {isLoaded && (
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={marker || defaultCenter}
-            zoom={marker ? 16 : 12}
-            onClick={(e) => {
-              const lat = e.latLng?.lat();
-              const lng = e.latLng?.lng();
-              if (lat && lng) {
-                setMarker({ lat, lng });
-                fetchAddress(lat, lng);
-              }
-            }}
-            onLoad={() => setMapLoaded(true)}
-          >
-            {marker && <Marker position={marker} />}
-          </GoogleMap>
-        )}
-        {form.address.street && (
-          <div className="mt-2 text-gray-700 text-sm">
-            <strong>Dirección seleccionada:</strong> {form.address.street}, {form.address.city}, {form.address.state}, {form.address.zipCode}
-          </div>
-        )}
-      </div>
+
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-8 space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700">Nombre</label>
@@ -232,21 +207,50 @@ export default function ProfilePage() {
         <div>
           <label className="block text-sm font-medium text-gray-700 mt-4">Dirección de envío</label>
           {isLoaded && (
-            <Autocomplete
-              onLoad={setAutocomplete}
-              onPlaceChanged={handlePlaceChanged}
-            >
-              <input
-                type="text"
-                className="input-field mt-1"
-                placeholder="Escribe tu dirección..."
-                value={form.address.street}
-                onChange={e => setForm(prev => ({
-                  ...prev,
-                  address: { ...prev.address, street: e.target.value }
-                }))}
-              />
-            </Autocomplete>
+            <>
+              <Autocomplete
+                onLoad={setAutocomplete}
+                onPlaceChanged={handlePlaceChanged}
+              >
+                <input
+                  type="text"
+                  className="input-field mt-1"
+                  placeholder="Escribe tu dirección..."
+                  value={form.address.street}
+                  onChange={e => setForm(prev => ({
+                    ...prev,
+                    address: { ...prev.address, street: e.target.value }
+                  }))}
+                />
+              </Autocomplete>
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Selecciona tu ubicación en el mapa</label>
+                <div className="rounded-lg overflow-hidden border border-gray-300 shadow-md">
+                  <GoogleMap
+                    mapContainerStyle={mapContainerStyle}
+                    center={marker || defaultCenter}
+                    zoom={marker ? 16 : 12}
+                    onClick={(e) => {
+                      const lat = e.latLng?.lat();
+                      const lng = e.latLng?.lng();
+                      if (lat && lng) {
+                        setMarker({ lat, lng });
+                        fetchAddress(lat, lng);
+                      }
+                    }}
+                    onLoad={() => setMapLoaded(true)}
+                  >
+                    {marker && <Marker position={marker} />}
+                  </GoogleMap>
+                </div>
+                {form.address.street && (
+                  <div className="mt-2 text-gray-700 text-sm bg-gray-50 p-3 rounded-md border border-gray-200">
+                    <strong>Dirección seleccionada:</strong> {form.address.street}, {form.address.city}, {form.address.state}, {form.address.zipCode}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
         {error && <div className="text-red-600 text-sm">{error}</div>}
