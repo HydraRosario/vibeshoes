@@ -12,7 +12,31 @@ import toast from 'react-hot-toast';
 
 function ProductImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [idx, setIdx] = useState(0);
-  if (!images || images.length === 0) return null;
+  if (!images || images.length === 0) {
+    return (
+      <div className="relative w-full aspect-square max-w-lg mx-auto flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden h-[400px] md:h-[500px]">
+        <div className="text-gray-400">Sin imagen</div>
+      </div>
+    );
+  }
+  
+  // If there's only one image, display it without carousel controls
+  if (images.length === 1) {
+    return (
+      <div className="relative w-full aspect-square max-w-lg mx-auto flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden h-[400px] md:h-[500px]">
+        <Image
+          src={images[0]}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 100vw, 500px"
+          className="object-cover rounded-lg"
+          priority={true}
+        />
+      </div>
+    );
+  }
+  
+  // Multiple images - show carousel
   return (
     <div className="relative w-full aspect-square max-w-lg mx-auto flex items-center justify-center bg-gray-100 rounded-lg overflow-hidden h-[400px] md:h-[500px]">
       <button
@@ -96,7 +120,7 @@ export default function ProductDetailPage() {
   }
 
   // Only access product.variations after confirming product is not null
-  const selectedVariation = product.variations?.[selectedColorIdx];
+  const selectedVariation = product.variations && product.variations.length > 0 ? product.variations[selectedColorIdx] : null;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
@@ -104,22 +128,49 @@ export default function ProductDetailPage() {
         {/* Galería de imágenes */}
         <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center w-full">
           {selectedVariation && selectedVariation.images && selectedVariation.images.length > 0 ? (
-  <ProductImageCarousel images={selectedVariation.images} alt={product.name + ' ' + selectedVariation.color} />
-) : (
-  <div className="w-full h-96 bg-gray-200 flex items-center justify-center rounded-lg">
-    <span className="text-gray-400">Sin imagen</span>
-  </div>
-)}
+            <ProductImageCarousel images={selectedVariation.images} alt={product.name + ' ' + selectedVariation.color} />
+          ) : product.images && product.images.length > 0 ? (
+            <ProductImageCarousel images={product.images} alt={product.name} />
+          ) : (
+            <div className="w-full h-96 bg-gray-200 flex items-center justify-center rounded-lg">
+              <span className="text-gray-400">Sin imagen</span>
+            </div>
+          )}
         </div>
         {/* Detalles */}
         <div>
-          <h1 className="text-3xl font-bold mb-4 text-gray-900">{product.name}</h1>
+          <h1 className="text-3xl font-bold mb-4 text-gray-900">
+            {product.name}
+            {selectedVariation && selectedVariation.color && (
+              <span className="text-xl ml-2 text-gray-600">- {selectedVariation.color}</span>
+            )}
+          </h1>
           <p className="text-lg text-gray-700 mb-6">{product.description}</p>
           {/* Selector de color como dropdown y muestra de talles disponibles */}
           {product.variations && product.variations.length > 0 && (
             <div className="mb-4">
               <div className="mb-4">
-                <div className="text-4xl font-extrabold text-green-600 mb-4">${typeof product.price === 'number' ? product.price.toLocaleString('es-AR') : 'Sin precio'}</div>
+                <div className="mb-4">
+                  {product.onSale ? (
+                    <div className="flex items-center gap-3">
+                      <div className="text-4xl font-extrabold text-green-600">
+                        ${typeof product.price === 'number' ? product.price.toLocaleString('es-AR') : 'Sin precio'}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xl line-through text-gray-500">
+                          ${typeof product.price === 'number' ? Math.round(product.price * 1.15).toLocaleString('es-AR') : ''}
+                        </span>
+                        <span className="bg-red-600 text-white text-sm px-2 py-1 rounded-md inline-block">
+                          15% OFF
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-4xl font-extrabold text-green-600">
+                      ${typeof product.price === 'number' ? product.price.toLocaleString('es-AR') : 'Sin precio'}
+                    </div>
+                  )}
+                </div>
                 <label className="block font-semibold mb-1">Color:</label>
                 <div className="flex gap-4 mt-2">
                   {product.variations.map((v, idx) => (
@@ -176,15 +227,17 @@ export default function ProductDetailPage() {
               }
               setAdding(true);
               try {
-                
-                
+                // El precio no cambia con el descuento, solo se muestra el precio "anterior" falso
+                const finalPrice = typeof selectedVariation.price === 'number' 
+                  ? selectedVariation.price 
+                  : product.price;
                 
                 await addToCart(user.id, {
                   ...product,
                   selectedColor: selectedVariation.color,
                   selectedSize: selectedTalle,
                   imageUrl: selectedVariation.images[0] || product.images?.[0] || '',
-                  price: typeof selectedVariation.price === 'number' ? selectedVariation.price : product.price,
+                  price: finalPrice,
                   stock: selectedVariation.stock
                 }, 1);
                 toast.success('¡Producto agregado al carrito!');

@@ -65,9 +65,20 @@ export function FloatingCart() {
         <div className="text-gray-400 text-sm text-center py-4">Tu carrito está vacío</div>
       ) : (
         <ul className="divide-y divide-gray-100 max-h-40 overflow-y-auto mb-2">
-          {cart.items.slice(0, 3).map(item => (
-            <CartItemRow key={item.productId + '-' + item.selectedColor + '-' + item.selectedSize} item={item} userId={user.id} />
+          {/* Mostrar los 3 productos más recientes primero (ordenados del más reciente al más antiguo) */}
+          {cart.items.slice(-3).reverse().map(item => (
+            <CartItemRow 
+              key={item.productId + '-' + item.selectedColor + '-' + item.selectedSize} 
+              item={item} 
+              userId={user.id} 
+            />
           ))}
+          {/* Mostrar "+ productos" con los productos anteriores si hay más de 3 */}
+          {cart.items.length > 3 && (
+            <li className="py-2 text-center text-sm text-gray-500">
+              + {cart.items.length - 3} {cart.items.length - 3 === 1 ? 'producto' : 'productos'} más
+            </li>
+          )}
         </ul>
       )}
       {cart && cart.items.length > 0 && (

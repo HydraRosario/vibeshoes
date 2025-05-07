@@ -42,12 +42,16 @@ export default function AdminProductsPage() {
     images: string[];
     price: number | '';
     variations: Variation[];
+    onSale: boolean;
+    category?: string;
   }>({
     name: '',
     description: '',
     images: [],
     price: '',
-    variations: []
+    variations: [],
+    onSale: false,
+    category: ''
   });
   // Manejo de variaciones y talles
   const [talleMin, setTalleMin] = useState(35);
@@ -269,7 +273,9 @@ export default function AdminProductsPage() {
         description: formData.description,
         images,
         price: Number(formData.price),
-        variations: formData.variations
+        variations: formData.variations,
+        onSale: formData.onSale,
+        category: formData.category
       };
 
       if (editingProduct) {
@@ -296,7 +302,9 @@ export default function AdminProductsPage() {
       description: product.description || '',
       images: product.images || [],
       price: product.price || '',
-      variations: product.variations || []
+      variations: product.variations || [],
+      onSale: product.onSale || false,
+      category: product.category || ''
     });
     setImagePreviews(product.images || []);
     setImageFiles([]);
@@ -329,7 +337,9 @@ export default function AdminProductsPage() {
       description: '',
       images: [],
       price: '',
-      variations: []
+      variations: [],
+      onSale: false,
+      category: ''
     });
     setEditingProduct(null);
     setImagePreviews([]);
@@ -373,6 +383,18 @@ export default function AdminProductsPage() {
                 min={0}
                 required
               />
+              <div className="mt-2 flex items-center">
+                <input
+                  type="checkbox"
+                  id="onSale"
+                  checked={formData.onSale}
+                  onChange={(e) => setFormData({ ...formData, onSale: e.target.checked })}
+                  className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded"
+                />
+                <label htmlFor="onSale" className="ml-2 block text-sm text-gray-700">
+                  Activar descuento (15% OFF)
+                </label>
+              </div>
             </div>
             <div>
               <label className="block text-base font-semibold text-gray-700 mb-1">Imágenes del Producto</label>

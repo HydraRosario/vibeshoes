@@ -19,6 +19,23 @@ function VariationCarousel({ variations, alt }: { variations: { images?: string[
   if (!images || images.length === 0) {
     return <div className="w-full h-full flex items-center justify-center"><span className="text-xs text-gray-400">Sin imagen</span></div>;
   }
+  // Si solo hay una imagen, no mostrar controles de navegación
+  if (images.length === 1) {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <Image
+          src={images[0]}
+          alt={alt}
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          priority
+        />
+      </div>
+    );
+  }
+  
+  // Si hay múltiples imágenes, mostrar con controles de navegación
   return (
     <div className="relative h-full w-full flex items-center justify-center">
       <button
@@ -43,15 +60,18 @@ function VariationCarousel({ variations, alt }: { variations: { images?: string[
         aria-label="Imagen siguiente"
         type="button"
       >&#62;</button>
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-        {images.map((_, i) => (
-          <span
-            key={i}
-            className={`w-2 h-2 rounded-full ${idx === i ? 'bg-red-600' : 'bg-gray-300'}`}
-            style={{ display: 'inline-block' }}
-          />
-        ))}
-      </div>
+      {/* Solo mostrar los puntos de navegación si hay más de una imagen */}
+      {images.length > 1 && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+          {images.map((_, i) => (
+            <span
+              key={i}
+              className={`w-2 h-2 rounded-full ${idx === i ? 'bg-red-600' : 'bg-gray-300'}`}
+              style={{ display: 'inline-block' }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -60,6 +80,25 @@ function VariationCarousel({ variations, alt }: { variations: { images?: string[
 function Carousel({ images, alt, smallArrows = false }: { images: string[]; alt: string; smallArrows?: boolean }) {
   const [imgIdx, setImgIdx] = useState(0);
   if (!images || images.length === 0) return null;
+  
+  // Si solo hay una imagen, mostrar sin controles de carrusel
+  if (images.length === 1) {
+    return (
+      <div className="relative h-full w-full flex items-center justify-center">
+        <Image
+          src={images[0]}
+          alt={alt}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 33vw"
+          priority={true}
+        />
+      </div>
+    );
+  }
+  
+  // Ya tenemos un return arriba para el caso de una sola imagen
+  // Este return es solo para múltiples imágenes
   return (
     <div className="relative h-full w-full flex items-center justify-center">
       <button
@@ -84,15 +123,18 @@ function Carousel({ images, alt, smallArrows = false }: { images: string[]; alt:
         aria-label="Imagen siguiente"
         type="button"
       >&#62;</button>
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-        {images.map((_, i) => (
-          <span
-            key={i}
-            className={`w-2 h-2 rounded-full ${imgIdx === i ? 'bg-red-600' : 'bg-gray-300'}`}
-            style={{ display: 'inline-block' }}
-          />
-        ))}
-      </div>
+      {/* Solo mostrar los puntos de navegación si hay más de una imagen */}
+      {images.length > 1 && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+          {images.map((_, i) => (
+            <span
+              key={i}
+              className={`w-2 h-2 rounded-full ${imgIdx === i ? 'bg-red-600' : 'bg-gray-300'}`}
+              style={{ display: 'inline-block' }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -125,6 +167,10 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
   const totalStock = product.variations && product.variations.length > 0
     ? product.variations.reduce((acc, v) => acc + (typeof v.stock === 'number' ? v.stock : 0), 0)
     : 0;
+    
+  // Calcular precio falso (15% más) para mostrar como precio anterior tachado cuando onSale es true
+  const currentPrice = product.price;
+  const fakeOriginalPrice = product.onSale ? Math.round(currentPrice * 1.15) : currentPrice;
 
   const handleAddToCart = async () => {
     if (!isAuthenticated || !user) {
@@ -136,17 +182,17 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
     setError('');
 
     try {
-      const debugPrice = (selectedVariation && typeof selectedVariation.price === 'number') ? selectedVariation.price : product.price;
-      
-      
-      
+      // El precio no cambia con el descuento, solo se muestra el precio "anterior" falso
+      const finalPrice = (selectedVariation && typeof selectedVariation.price === 'number')
+        ? selectedVariation.price
+        : product.price;
       
       await addToCart(user.id, {
         ...product,
         selectedColor: product.variations && product.variations.length > 0 ? product.variations[0].color : '',
         selectedSize: '',
         imageUrl: mainImage || '',
-        price: debugPrice,
+        price: finalPrice,
         stock: product.variations && product.variations.length > 0 ? product.variations[0].stock : 0
       }, 1);
       toast.success('¡Producto agregado al carrito!');
@@ -173,13 +219,33 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
               variations={product.variations}
               alt={product.name}
             />
+          ) : product.images && product.images.length > 0 ? (
+            <Carousel images={product.images} alt={product.name} smallArrows />
           ) : (
-            <Carousel images={product.images || []} alt={product.name} smallArrows />
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-xs text-gray-400">Sin imagen</span>
+            </div>
           )}
         </div>
         <div className="p-4">
           <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition-colors">{product.name}</h3>
-          <p className="text-base font-semibold text-green-700 mt-1">${typeof product.price === 'number' ? product.price.toLocaleString('es-AR') : 'Sin precio'}</p>
+          <div className="mt-1">
+            {product.onSale ? (
+              <div className="flex items-center gap-2">
+                <p className="text-base font-semibold text-green-700">
+                  ${typeof currentPrice === 'number' ? currentPrice.toLocaleString('es-AR') : 'Sin precio'}
+                </p>
+                <p className="text-sm line-through text-gray-500">
+                  ${typeof fakeOriginalPrice === 'number' ? fakeOriginalPrice.toLocaleString('es-AR') : ''}
+                </p>
+                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-md">15% OFF</span>
+              </div>
+            ) : (
+              <p className="text-base font-semibold text-green-700">
+                ${typeof product.price === 'number' ? product.price.toLocaleString('es-AR') : 'Sin precio'}
+              </p>
+            )}
+          </div>
           <p className="text-gray-600 mt-1 text-sm line-clamp-2">{product.description}</p>
 
           <div className="mt-4">

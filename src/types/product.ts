@@ -8,6 +8,8 @@ export interface Product {
   createdAt: Date;
   updatedAt: Date;
   variations: Variation[];
+  category?: string;
+  onSale?: boolean; // For the 15% discount feature
 }
 
 export interface Variation {
