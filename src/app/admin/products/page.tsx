@@ -56,9 +56,16 @@ export default function AdminProductsPage() {
   // Manejo de variaciones y talles
   const [talleMin, setTalleMin] = useState(35);
   const [talleMax, setTalleMax] = useState(44);
-  const getTalleRange = () => Array.from({ length: talleMax - talleMin + 1 }, (_, i) => talleMin + i);
+  // Asegurar que el rango de talles no exceda 10 números
+  const getTalleRange = () => {
+    // Si el rango es mayor a 10, ajustar talleMax
+    if (talleMax - talleMin > 9) {
+      return Array.from({ length: 10 }, (_, i) => talleMin + i);
+    }
+    return Array.from({ length: talleMax - talleMin + 1 }, (_, i) => talleMin + i);
+  };
   const [talleRange, setTalleRange] = useState<number[]>(getTalleRange());
-  const [newVariation, setNewVariation] = useState<{ color: string; tallesDisponibles: (number | string)[]; images: string[]; stock: string }>({ color: '', tallesDisponibles: [35,36,37,38,39,40,41,42,43,44], images: [], stock: '' });
+  const [newVariation, setNewVariation] = useState<{ color: string; tallesDisponibles: (number | string)[]; images: string[]; stock: string }>({ color: '', tallesDisponibles: [], images: [], stock: '' });
   const [editingVariationIdx, setEditingVariationIdx] = useState<number | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -151,7 +158,7 @@ export default function AdminProductsPage() {
       });
     }
     // Resetear el formulario de variación
-    setNewVariation({ color: '', tallesDisponibles: [35,36,37,38,39,40,41,42,43,44], images: [], stock: '' });
+    setNewVariation({ color: '', tallesDisponibles: [], images: [], stock: '' });
   };
 
   // Estado para el arrastrar y soltar
@@ -205,7 +212,7 @@ export default function AdminProductsPage() {
     const variation = formData.variations[idx];
     setNewVariation({
       color: variation.color || '',
-      tallesDisponibles: variation.tallesDisponibles || [35,36,37,38,39,40,41,42,43,44],
+      tallesDisponibles: variation.tallesDisponibles || [],
       images: variation.images || [],
       stock: variation.stock?.toString() || ''
     });
@@ -223,7 +230,7 @@ export default function AdminProductsPage() {
   
   const handleCancelEdit = () => {
     setEditingVariationIdx(null);
-    setNewVariation({ color: '', tallesDisponibles: [35,36,37,38,39,40,41,42,43,44], images: [], stock: '' });
+    setNewVariation({ color: '', tallesDisponibles: [], images: [], stock: '' });
   };
   
   const handleMoveVariationImage = (variationIdx: number, from: number, to: number) => {
@@ -256,6 +263,13 @@ export default function AdminProductsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Validar que haya al menos una imagen
+    if (imageFiles.length === 0 && (!editingProduct || (editingProduct && formData.images.length === 0))) {
+      toast.error('Debes agregar al menos una imagen del producto');
+      setLoading(false);
+      return;
+    }
 
     try {
       let images: string[] = [];
@@ -368,19 +382,26 @@ export default function AdminProductsPage() {
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) => setFormData({...formData, name: e.target.value.slice(0, 30)})}
                 className="input-field mt-1 bg-gray-50"
+                maxLength={30}
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.name.length}/30 caracteres</p>
             </div>
             <div>
               <label className="block text-base font-semibold text-gray-700 mb-1">Precio</label>
               <input
                 type="number"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? '' : Number(e.target.value) })}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? '' : Number(e.target.value);
+                  if (typeof value === 'number' && value > 99999999) return; // Limitar a 8 dígitos
+                  setFormData({ ...formData, price: value });
+                }}
                 className="input-field mt-1 bg-gray-50"
                 min={0}
+                max={99999999}
                 required
               />
               <div className="mt-2 flex items-center">
@@ -418,10 +439,12 @@ export default function AdminProductsPage() {
               <label className="block text-base font-semibold text-gray-700 mb-1">Descripción</label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                onChange={(e) => setFormData({...formData, description: e.target.value.slice(0, 100)})}
                 className="input-field mt-1 bg-gray-50"
                 rows={3}
+                maxLength={100}
               />
+              <p className="text-xs text-gray-500 mt-1">{formData.description.length}/100 caracteres</p>
             </div>
           </div>
           
@@ -450,9 +473,21 @@ export default function AdminProductsPage() {
                       const val = Number(e.target.value);
                       setTalleMin(val);
                       if(val > talleMax) setTalleMax(val);
-                      const range = Array.from({ length: talleMax - val + 1 }, (_, i) => val + i);
-                      setTalleRange(range);
-                      setNewVariation(v => ({ ...v, tallesDisponibles: range }));
+                      
+                      // Limitar a 10 talles como máximo
+                      let maxValue = val + 9;
+                      if (maxValue < talleMax) {
+                        // Si el nuevo rango es menor a 10, mantener el talleMax original
+                        const range = Array.from({ length: talleMax - val + 1 }, (_, i) => val + i);
+                        setTalleRange(range);
+                        setNewVariation(v => ({ ...v, tallesDisponibles: [] })); // Resetear talles disponibles
+                      } else {
+                        // Si el nuevo rango excede 10, ajustar talleMax
+                        setTalleMax(maxValue);
+                        const range = Array.from({ length: 10 }, (_, i) => val + i);
+                        setTalleRange(range);
+                        setNewVariation(v => ({ ...v, tallesDisponibles: [] })); // Resetear talles disponibles
+                      }
                     }}
                     className="input-field w-20"
                   />
@@ -460,26 +495,76 @@ export default function AdminProductsPage() {
                   <input
                     type="number"
                     min={talleMin}
+                    max={talleMin + 9} // Limitar a talleMin + 9 para no exceder 10 talles
                     value={talleMax}
                     onChange={e => {
                       const val = Number(e.target.value);
-                      setTalleMax(val);
-                      if(val < talleMin) setTalleMin(val);
-                      const range = Array.from({ length: val - talleMin + 1 }, (_, i) => talleMin + i);
-                      setTalleRange(range);
-                      setNewVariation(v => ({ ...v, tallesDisponibles: range }));
+                      // Asegurar que no exceda el límite de 10 talles
+                      if (val - talleMin > 9) {
+                        const newMax = talleMin + 9;
+                        setTalleMax(newMax);
+                        const range = Array.from({ length: 10 }, (_, i) => talleMin + i);
+                        setTalleRange(range);
+                        setNewVariation(v => ({ ...v, tallesDisponibles: [] })); // Resetear talles disponibles
+                      } else {
+                        setTalleMax(val);
+                        if(val < talleMin) setTalleMin(val);
+                        const range = Array.from({ length: val - talleMin + 1 }, (_, i) => talleMin + i);
+                        setTalleRange(range);
+                        setNewVariation(v => ({ ...v, tallesDisponibles: [] })); // Resetear talles disponibles
+                      }
                     }}
                     className="input-field w-20"
                   />
+                </div>
+                <p className="text-xs text-gray-500 mb-2">Máximo 10 talles permitidos</p>
+                
+                {/* Cajas seleccionables para talles disponibles */}
+                <div className="mt-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Selecciona los talles disponibles:</label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {talleRange.map(talle => {
+                      const isSelected = newVariation.tallesDisponibles.includes(talle);
+                      return (
+                        <div 
+                          key={talle}
+                          onClick={() => {
+                            if (isSelected) {
+                              // Quitar talle
+                              setNewVariation({
+                                ...newVariation,
+                                tallesDisponibles: newVariation.tallesDisponibles.filter(t => t !== talle)
+                              });
+                            } else {
+                              // Añadir talle
+                              setNewVariation({
+                                ...newVariation,
+                                tallesDisponibles: [...newVariation.tallesDisponibles, talle]
+                              });
+                            }
+                          }}
+                          className={`cursor-pointer border rounded-md p-2 text-center ${isSelected ? 'bg-red-600 text-white border-red-700' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'}`}
+                        >
+                          {talle}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Stock</label>
                 <input 
                   type="number" 
-                  min={0} 
+                  min={0}
+                  max={9999} 
                   value={newVariation.stock} 
-                  onChange={e => setNewVariation({...newVariation, stock: e.target.value})} 
+                  onChange={e => {
+                    const value = e.target.value;
+                    if (value === '' || Number(value) <= 9999) {
+                      setNewVariation({...newVariation, stock: value});
+                    }
+                  }} 
                   className="input-field mt-1 w-20 text-gray-700" 
                 />
               </div>
@@ -572,7 +657,17 @@ export default function AdminProductsPage() {
                         <span className="font-semibold text-gray-800">Color: {v.color}</span>
                       </div>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="text-sm text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">Talles: {Array.isArray(v.tallesDisponibles) ? v.tallesDisponibles.join(', ') : 'No especificados'}</span>
+                        <div className="text-sm text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">
+                          <span className="font-medium">Talles:</span> 
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Array.isArray(v.tallesDisponibles) ? 
+                              v.tallesDisponibles.map((talle, talleIdx) => (
+                                <span key={talleIdx} className="inline-block px-2 py-1 bg-gray-100 rounded text-xs">
+                                  {talle}
+                                </span>
+                              )) : 'No especificados'}
+                          </div>
+                        </div>
                         <span className="text-sm text-gray-700 bg-white px-2 py-1 rounded border border-gray-200">Stock: {v.stock}</span>
                       </div>
                     </div>

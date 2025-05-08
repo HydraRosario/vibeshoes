@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { Navbar } from '@/components/Navbar';
 import { Providers } from '@/components/Providers';
 import { FloatingCart } from '@/components/FloatingCart';
+import { Footer } from '@/components/Footer';
 import "./globals.css";
 
 const inter = Inter({
@@ -25,10 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={inter.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-gray-50 font-sans antialiased">
+      <body className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col">
         <Suspense fallback={null}>
           <Navbar />
           <main className="flex-grow">{children}</main>
+          <Footer />
           <Providers />
           <FloatingCart />
         </Suspense>
