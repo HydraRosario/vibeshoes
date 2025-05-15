@@ -76,13 +76,13 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-100 via-white to-gray-200 py-16 px-4 flex flex-col items-center animate-fade-in">
-      <h1 className="text-4xl md:text-5xl font-extrabold mb-12 text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-pink-500 to-yellow-400 drop-shadow-xl tracking-tight flex items-center gap-3 animate-fade-in-up">
-        <svg className="h-10 w-10 text-red-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2" /></svg>
+    <div className="min-h-screen bg-white py-16 px-4 flex flex-col items-center animate-fade-in font-sans">
+      <h1 className="text-4xl md:text-5xl font-extrabold mb-12 text-black tracking-tight flex items-center gap-3 animate-fade-in-up font-sans">
+        <svg className="h-10 w-10 text-gold-600 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2" /></svg>
         Dashboard de Administración
       </h1>
       {loading ? (
-        <div className="flex items-center justify-center text-red-400 animate-pulse py-16">
+        <div className="flex items-center justify-center text-gold-600 animate-pulse py-16">
           <svg className="h-8 w-8 mr-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path d="M4 12a8 8 0 018-8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" /></svg>
           Cargando datos...
         </div>
@@ -91,44 +91,44 @@ export default function AdminDashboard() {
           <DashboardCharts products={products} orders={orders} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
           {/* Stock por producto */}
-          <div className="bg-white/90 rounded-3xl shadow-2xl p-8 border border-red-100 transition-all hover:shadow-red-300 animate-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 hover:shadow-2xl transition-all animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">
-              <svg className="h-7 w-7 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17v-2a4 4 0 014-4h10a4 4 0 014 4v2" /></svg>
-              <h2 className="text-2xl font-bold text-red-700 tracking-tight">Stock por producto</h2>
+              <svg className="h-7 w-7 text-gold-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 17v-2a4 4 0 014-4h10a4 4 0 014 4v2" /></svg>
+              <h2 className="text-2xl font-bold text-black tracking-tight">Stock por producto</h2>
             </div>
             <ul className="space-y-3">
               {products.length === 0 ? (
                 <li className="text-gray-400 italic">No hay productos cargados.</li>
               ) : (
                 products.map((p: any) => (
-                  <li key={p.id} className="flex justify-between items-center px-4 py-2 rounded-lg bg-gradient-to-r from-red-100/60 to-white/80 shadow group">
+                  <li key={p.id} className="flex justify-between items-center px-4 py-2 rounded-lg bg-white shadow group">
                     <span className="font-medium text-gray-800 flex items-center gap-2">
-                      <svg className="h-4 w-4 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                      <svg className="h-4 w-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
                       {p.name}
                     </span>
-                    <span className="inline-block bg-green-100 text-green-700 font-bold px-3 py-1 rounded-full shadow text-sm animate-pulse">{p.stockTotal || 0}</span>
+                    <span className="inline-block bg-emerald-100 text-emerald-700 font-bold px-3 py-1 rounded-full shadow text-sm animate-pulse">{p.stockTotal || 0}</span>
                   </li>
                 ))
               )}
             </ul>
           </div>
           {/* Ventas por producto */}
-          <div className="bg-white/90 rounded-3xl shadow-2xl p-8 border border-pink-100 transition-all hover:shadow-pink-200 animate-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 hover:shadow-2xl transition-all animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">
-              <svg className="h-7 w-7 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
-              <h2 className="text-2xl font-bold text-pink-600 tracking-tight">Ventas por producto</h2>
+              <svg className="h-7 w-7 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
+              <h2 className="text-2xl font-bold text-black tracking-tight">Ventas por producto</h2>
             </div>
             <ul className="space-y-3">
               {products.length === 0 ? (
                 <li className="text-gray-400 italic">No hay productos cargados.</li>
               ) : (
                 products.map((p: any) => (
-                  <li key={p.id} className="flex justify-between items-center px-4 py-2 rounded-lg bg-gradient-to-r from-pink-100/60 to-white/80 shadow group">
+                  <li key={p.id} className="flex justify-between items-center px-4 py-2 rounded-lg bg-white shadow group">
                     <span className="font-medium text-gray-800 flex items-center gap-2">
-                      <svg className="h-4 w-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      <svg className="h-4 w-4 text-gold-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                       {p.name}
                     </span>
-                    <span className="inline-block bg-yellow-100 text-yellow-700 font-bold px-3 py-1 rounded-full shadow text-sm animate-pulse">
+                    <span className="inline-block bg-gold-100 text-gold-700 font-bold px-3 py-1 rounded-full shadow text-sm animate-pulse">
                       {orders.reduce((acc: number, o: any) => {
                         const found = o.items?.find((item: any) => item.productId === p.id);
                         return acc + (found ? found.quantity : 0);
@@ -140,10 +140,10 @@ export default function AdminDashboard() {
             </ul>
           </div>
           {/* Órdenes por estado */}
-          <div className="bg-white/90 rounded-3xl shadow-2xl p-8 border border-yellow-100 transition-all hover:shadow-yellow-200 md:col-span-2 animate-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 md:col-span-2 hover:shadow-2xl transition-all animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">
-              <svg className="h-7 w-7 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17l4 4 4-4m0 0V3m0 18H4" /></svg>
-              <h2 className="text-2xl font-bold text-yellow-600 tracking-tight">Órdenes por estado</h2>
+              <svg className="h-7 w-7 text-gold-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 17l4 4 4-4m0 0V3m0 18H4" /></svg>
+              <h2 className="text-2xl font-bold text-gold-700 tracking-tight">Órdenes por estado</h2>
             </div>
             <ul className="flex flex-wrap gap-4">
               {(() => {
@@ -152,11 +152,11 @@ export default function AdminDashboard() {
                   statusCounts[o.status] = (statusCounts[o.status] || 0) + 1;
                 });
                 const statusColors: Record<string, string> = {
-                  pendiente: 'bg-yellow-100 text-yellow-700',
-                  pagada: 'bg-green-100 text-green-700',
+                  pendiente: 'bg-gold-100 text-gold-700',
+                  pagada: 'bg-emerald-100 text-emerald-700',
                   enviada: 'bg-blue-100 text-blue-700',
-                  cancelada: 'bg-red-100 text-red-700',
-                  completada: 'bg-pink-100 text-pink-700',
+                  cancelada: 'bg-gray-100 text-black',
+                  completada: 'bg-gray-100 text-black',
                 };
                 return Object.entries(statusCounts).map(([status, count]) => (
                   <li key={status} className={`px-6 py-3 rounded-full font-bold shadow text-lg flex items-center gap-2 ${statusColors[status] || 'bg-gray-100 text-gray-700'}`}>

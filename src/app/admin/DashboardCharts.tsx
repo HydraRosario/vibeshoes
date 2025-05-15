@@ -42,11 +42,11 @@ export function DashboardCharts({ products, orders }: { products: any[]; orders:
       {
         data: topProducts.map((p) => p.sales),
         backgroundColor: [
-          "#ef4444",
-          "#f87171",
-          "#fbbf24",
-          "#fca5a5",
-          "#f59e42",
+          "#FFD700",
+          "#FFE066",
+          "#FFECB3",
+          "#BFAE32",
+          "#C9B037",
         ],
         borderWidth: 1,
       },
@@ -60,15 +60,15 @@ export function DashboardCharts({ products, orders }: { products: any[]; orders:
       {
         label: "Stock",
         data: products.map((p) => p.stockTotal || 0),
-        backgroundColor: "rgba(239,68,68,0.7)",
+        backgroundColor: "#FFD700",
       },
     ],
   };
 
   return (
-    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 my-10">
+    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 my-10 font-sans">
       <div className="bg-white/90 rounded-2xl shadow-xl p-6 border border-red-100">
-        <h3 className="font-bold text-lg mb-4 text-red-700">Top 5 Productos Más Vendidos</h3>
+        <h3 className="font-bold text-lg mb-4 text-black">Top 5 Productos Más Vendidos</h3>
         <Pie data={pieData} />
       </div>
       <div className="bg-white/90 rounded-2xl shadow-xl p-6 border border-red-100">
