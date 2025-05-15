@@ -9,7 +9,7 @@ export function Navbar() {
   const { user, isAuthenticated, isAdmin, logout, loading } = useAuth();
 
   return (
-    <nav className="bg-red-700 text-white shadow-lg">
+    <nav className="bg-red-700 text-white shadow-lg" role="navigation" aria-label="Navegación principal">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -42,11 +42,14 @@ export function Navbar() {
                 )}
                 <Link
                   href="/cart"
-                  className="text-white hover:text-gray-200 transition-colors"
+                  className="text-white hover:text-gray-600 transition-colors"
                 >
                   <ShoppingCartIcon className="h-6 w-6" />
                 </Link>
-                <Link href="/profile" className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full transition-all duration-200 flex items-center space-x-2 font-medium shadow-sm hover:shadow">
+                <Link
+                  href="/profile"
+                  className="bg-white/20 hover:bg-yellow-100 focus:bg-yellow-200 text-white hover:text-red-700 focus:text-red-800 px-4 py-2 rounded-full transition-all duration-200 flex items-center space-x-2 font-medium shadow-sm hover:shadow outline-none"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                   </svg>

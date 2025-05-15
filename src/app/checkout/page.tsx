@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { getCart } from '@/features/cart';
+import { getCart, clearCart } from '@/features/cart';
 import { createOrder } from '@/features/orders';
 import { Cart } from '@/types/cart';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -120,6 +120,15 @@ export default function CheckoutPage() {
         user.displayName || undefined
       );
       if (order) {
+        // Vaciar el carrito después de crear el pedido
+        if (user?.id) {
+          try {
+            await clearCart(user.id);
+          } catch (err) {
+            // No bloquear el flujo si falla, pero mostrar en consola
+            console.error('No se pudo vaciar el carrito después del pedido:', err);
+          }
+        }
         // Generate WhatsApp message and redirect
         const whatsappMessage = formatWhatsAppMessage();
         const whatsappNumber = '5493415840614'; // Número de WhatsApp del coordinador

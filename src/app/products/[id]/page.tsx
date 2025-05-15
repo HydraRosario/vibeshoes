@@ -9,6 +9,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { useAuth } from '@/hooks/useAuth';
 import { addToCart } from '@/features/cart';
 import toast from 'react-hot-toast';
+import ReviewList from '@/app/profile/ReviewList';
 
 function ProductImageCarousel({ images, alt }: { images: string[]; alt: string }) {
   const [idx, setIdx] = useState(0);
@@ -71,6 +72,7 @@ function ProductImageCarousel({ images, alt }: { images: string[]; alt: string }
         ))}
       </div>
     </div>
+
   );
 }
 
@@ -146,6 +148,7 @@ export default function ProductDetailPage() {
             )}
           </h1>
           <p className="text-lg text-gray-700 mb-6">{product.description}</p>
+          
           {/* Selector de color como dropdown y muestra de talles disponibles */}
           {product.variations && product.variations.length > 0 && (
             <div className="mb-4">
@@ -278,17 +281,24 @@ export default function ProductDetailPage() {
         </div>
       </div>
       {/* Productos relacionados */}
-      <div className="mt-16">
-        <h2 className="text-2xl font-bold mb-6 text-gray-900">Productos Relacionados</h2>
+      <div className="mt-6">
+        <h2 className="text-lg font-semibold mb-2 text-gray-700">Productos Relacionados</h2>
         {related.length === 0 ? (
-          <div className="text-gray-400 text-center">No hay productos relacionados.</div>
+          <div className="text-gray-400 text-center text-sm">No hay productos relacionados.</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {related.map((prod) => (
-              <ProductCard key={prod.id} product={prod} />
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {related.slice(0, 3).map((prod) => (
+              <div key={prod.id} className="p-1">
+                <ProductCard product={{ ...prod }} showVariationsGrid={false} />
+              </div>
             ))}
           </div>
         )}
+      </div>
+      {/* Sección de comentarios/reviews debajo de los productos relacionados */}
+      <div className="mt-16">
+        <h2 className="text-2xl font-bold mb-6 text-gray-900">Comentarios</h2>
+        <ReviewList productId={product.id} />
       </div>
     </div>
   );

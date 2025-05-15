@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-8 mt-12">
+    <footer className="bg-gray-900 text-white py-8 mt-12" role="contentinfo" aria-label="Pie de página">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0">
@@ -56,7 +56,7 @@ export function Footer() {
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
             &copy; 2025 - VIBESHOES. Todos los derechos reservados. Designed by{' '}
-            <Link href="https://github.com/HydraRosario" target="_blank" className="text-red-500 hover:text-red-400 transition-colors">
+            <Link href="https://github.com/HydraRosario" target="_blank" className="text-yellow-400 hover:text-yellow-200 focus:text-yellow-300 transition-colors outline-none underline">
               HydraRosario
             </Link>
           </p>

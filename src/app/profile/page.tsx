@@ -10,6 +10,9 @@ import { getUserOrders } from "@/features/orders";
 import { Order } from "@/types/order";
 import { useRouter } from "next/navigation";
 import { FaPencilAlt, FaCheck } from "react-icons/fa";
+import ReviewForm from './ReviewForm';
+import ReviewList from './ReviewList';
+import { OrderReviewItem } from './OrderReviewItem';
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -409,6 +412,21 @@ export default function ProfilePage() {
                     Total: ${selectedOrder.total.toLocaleString('es-AR')}
                   </div>
                 </div>
+                {/* Reviews por producto en pedido enviado */}
+                {selectedOrder && selectedOrder.status === 'enviado' && (
+                  <div className="mt-8">
+                    <h4 className="text-lg font-semibold mb-2 text-gray-900">Dejá tu comentario sobre los productos</h4>
+                    {user && selectedOrder.items.map((item) => (
+  <OrderReviewItem
+    key={item.productId}
+    item={item}
+    orderId={selectedOrder.id}
+    userId={user.id}
+    userName={user.displayName || user.email}
+  />
+))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="border rounded-lg overflow-hidden bg-white shadow-sm">

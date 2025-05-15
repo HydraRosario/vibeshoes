@@ -47,7 +47,7 @@ export function FloatingCart() {
   const { cart, loading } = useRealtimeCart(user?.id);
   const pathname = usePathname();
 
-  if (pathname === '/cart' || pathname.startsWith('/admin')) return null;
+  if (pathname === '/cart' || pathname === '/checkout' || pathname.startsWith('/admin')) return null;
   if (!isAuthenticated || !user || !cart || cart.items.length === 0) return null;
 
   return (
