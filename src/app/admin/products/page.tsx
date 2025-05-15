@@ -370,12 +370,15 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-100">
-      <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
-        <h1 className="text-4xl font-extrabold mb-10 text-center text-gray-900 drop-shadow-lg">Gestión de Productos</h1>
+    <div className="min-h-screen bg-gradient-to-br from-red-100 via-white to-gray-200 py-12 px-2 animate-fade-in">
+      <div className="max-w-6xl mx-auto px-4 py-10 animate-fade-in-up">
+        <h1 className="text-5xl font-extrabold mb-12 text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-pink-500 to-yellow-400 drop-shadow-xl text-center tracking-tight flex items-center justify-center gap-3 animate-fade-in-up">
+          <svg className="h-10 w-10 text-red-500 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h2a4 4 0 014 4v2" /></svg>
+          Gestión de Productos
+        </h1>
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="bg-white/90 backdrop-blur-md p-8 rounded-2xl shadow-2xl mb-12 border border-red-100 animate-fade-in-up">
+        <form onSubmit={handleSubmit} className="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl mb-14 border border-red-100 animate-fade-in-up">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <label className="block text-base font-semibold text-gray-700 mb-1">Nombre del Producto</label>
@@ -805,63 +808,85 @@ export default function AdminProductsPage() {
         </div>
         
         {/* Lista de productos */}
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-2xl border border-red-100 animate-fade-in-up">
-          <ul className="divide-y divide-gray-200">
-            {filteredProducts.length === 0 ? (
-              <li className="py-10 text-center">
-                <p className="text-gray-500 text-lg">No se encontraron productos{searchTerm ? ` que coincidan con "${searchTerm}"` : ''}.</p>
-              </li>
-            ) : (
-              filteredProducts.map((product, idx) => {
-              // Calcular stock total sumando el stock de todas las variaciones
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-10 animate-fade-in-up">
+          {filteredProducts.length === 0 ? (
+            <div className="col-span-full text-center py-16">
+              <p className="text-red-400 text-xl font-bold">No se encontraron productos{searchTerm ? ` que coincidan con "${searchTerm}"` : ''}.</p>
+            </div>
+          ) : (
+            filteredProducts.map((product, idx) => {
               const totalStock = product.variations && product.variations.length > 0
                 ? product.variations.reduce((acc, v) => acc + (typeof v.stock === 'number' ? v.stock : 0), 0)
                 : 0;
               return (
-                <li key={product.id} style={{ animationDelay: `${idx * 60}ms` }} className="flex items-center justify-between px-8 py-6 group hover:bg-red-50 transition-colors animate-fade-in-up">
-                  <div className="flex items-center">
-                    {product.images && product.images.length > 0 && (
-                      <div className="flex space-x-2">
-                        {product.images.map((image: string, index: number) => (
-                          <img
-                            key={index}
-                            src={image}
-                            alt={product.name}
-                            className="h-16 w-16 rounded-lg object-cover border border-gray-200 shadow"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
-                            }}
-                          />
-                        ))}
+                <div
+                  key={product.id}
+                  style={{ animationDelay: `${idx * 60}ms` }}
+                  className="relative bg-white/90 rounded-3xl shadow-2xl border border-red-100 flex flex-col p-6 group hover:shadow-red-200 hover:scale-[1.025] transition-all duration-150 animate-fade-in-up"
+                >
+                  {/* Oferta badge */}
+                  {product.onSale && (
+                    <span className="absolute top-4 right-4 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg animate-pulse flex items-center gap-1">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
+                      Oferta 15% OFF
+                    </span>
+                  )}
+                  {/* Imágenes */}
+                  <div className="flex justify-center gap-2 mb-4">
+                    {product.images && product.images.length > 0 ? (
+                      product.images.slice(0, 2).map((image: string, i: number) => (
+                        <img
+                          key={i}
+                          src={image}
+                          alt={product.name}
+                          className="h-24 w-24 rounded-xl object-cover border-2 border-white shadow-md bg-gray-100"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/lightgray/white?text=No+Disponible';
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <div className="h-24 w-24 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 border-2 border-white shadow-md">
+                        <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                       </div>
                     )}
-                    <div className="ml-4">
-                      <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition-colors">{product.name}</h3>
-                      <p className="text-sm text-gray-500">Variaciones: {product.variations?.length || 0} - Stock total: {totalStock}</p>
-                    </div>
                   </div>
-                  <div className="flex flex-col items-end space-y-2 min-w-[120px]">
-                    <span className="font-bold text-lg text-green-700">${product.price ?? 'Sin precio'}</span>
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => handleEdit(product)}
-                        className="px-4 py-2 rounded-md font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 shadow transition-colors"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        className="px-4 py-2 rounded-md font-semibold text-white bg-red-700 hover:bg-red-800 shadow transition-colors"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
+                  {/* Nombre y precio */}
+                  <div className="flex flex-col items-center mb-2">
+                    <h3 className="text-xl font-extrabold text-gray-900 text-center mb-1 group-hover:text-red-700 transition-colors flex items-center gap-2">
+                      <svg className="h-5 w-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" /></svg>
+                      {product.name}
+                    </h3>
+                    <span className="inline-block bg-green-100 text-green-700 font-bold px-4 py-1 rounded-full shadow text-lg animate-pulse">
+                      ${product.price ?? 'Sin precio'}
+                    </span>
                   </div>
-                </li>
+                  {/* Variaciones y stock */}
+                  <div className="flex flex-col items-center mb-4">
+                    <span className="text-sm text-gray-600">Variaciones: <span className="font-bold text-gray-800">{product.variations?.length || 0}</span></span>
+                    <span className="text-sm text-gray-600">Stock total: <span className="font-bold text-gray-800">{totalStock}</span></span>
+                  </div>
+                  {/* Acciones */}
+                  <div className="flex justify-center gap-4 mt-auto">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="px-5 py-2 rounded-xl font-semibold text-indigo-700 bg-indigo-100 hover:bg-indigo-200 shadow transition-colors flex items-center gap-2 active:scale-95"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l6 6M3 21v-3.75a2.25 2.25 0 012.25-2.25h3.75" /></svg>
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="px-5 py-2 rounded-xl font-semibold text-white bg-red-600 hover:bg-red-800 shadow transition-colors flex items-center gap-2 active:scale-95"
+                    >
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
               );
-            }))
-            }
-          </ul>
+            })
+          )}
         </div>
       </div>
     </div>

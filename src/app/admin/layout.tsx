@@ -46,12 +46,24 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           <h2 className="text-xl font-bold">Panel Admin</h2>
           <p className="text-sm text-gray-400 mt-1">{user?.email}</p>
         </div>
-        <nav className="mt-4">
+        <nav className="mt-4 space-y-1">
+          <Link
+            href="/admin"
+            className="block px-4 py-2 hover:bg-gray-700 transition-colors"
+          >
+            Dashboard
+          </Link>
           <Link
             href="/admin/products"
             className="block px-4 py-2 hover:bg-gray-700 transition-colors"
           >
             Productos
+          </Link>
+          <Link
+            href="/admin/categories"
+            className="block px-4 py-2 hover:bg-gray-700 transition-colors"
+          >
+            Categorías
           </Link>
           <Link
             href="/admin/orders"

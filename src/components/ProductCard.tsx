@@ -204,56 +204,44 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
   };
 
   return (
-    <div
-      className="block group focus:outline-none focus:ring-2 focus:ring-red-500 rounded-lg cursor-pointer"
-      onClick={() => window.location.href = `/products/${product.id}`}
-      tabIndex={0}
-      role="button"
-      onKeyDown={e => { if(e.key === 'Enter') window.location.href = `/products/${product.id}`; }}
-    >
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform group-hover:scale-105 group-hover:shadow-2xl group-active:scale-100">
-        <div className="relative w-full aspect-square bg-gray-100 rounded-t-lg overflow-hidden h-[220px] md:h-[300px]">
-          {/* Eliminamos el onClick que previene la navegación en toda la imagen */}
-          {product.variations && product.variations.length > 0 ? (
-            <VariationCarousel
-              variations={product.variations}
-              alt={product.name}
-            />
-          ) : product.images && product.images.length > 0 ? (
-            <Carousel images={product.images} alt={product.name} smallArrows />
+    <div className="group relative flex flex-col rounded-3xl bg-gradient-to-br from-pink-50 via-white to-yellow-50 shadow-2xl hover:shadow-pink-300 transition-shadow duration-200 overflow-hidden border-2 border-pink-100 animate-fade-in-up">
+      <Link href={`/products/${product.id}`} className="block relative h-56 w-full">
+        {product.variations && product.variations.length > 0 ? (
+          <VariationCarousel variations={product.variations} alt={product.name} />
+        ) : (
+          product.images && product.images.length > 0 ? (
+            <Carousel images={product.images} alt={product.name} />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-xs text-gray-400">Sin imagen</span>
-            </div>
+            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">Sin imagen</div>
+          )
+        )}
+        {product.onSale && (
+          <span className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-yellow-400 text-white text-xs font-extrabold px-4 py-1 rounded-full shadow-lg animate-bounce">Oferta</span>
+        )}
+      </Link>
+      <div className="p-5 flex flex-col flex-1">
+        <h3 className="font-extrabold text-xl text-pink-700 mb-1 line-clamp-2 drop-shadow-sm animate-fade-in-up">{product.name}</h3>
+        <div className="flex items-center gap-2 mb-2">
+          {product.onSale ? (
+            <>
+              <span className="text-2xl font-extrabold text-pink-600 animate-pulse">
+                {(product.price * 0.85).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}
+              </span>
+              <span className="text-base text-gray-400 line-through font-bold">
+                {product.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}
+              </span>
+            </>
+          ) : (
+            <span className="text-2xl font-extrabold text-pink-700 animate-fade-in-up">
+              {product.price.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}
+            </span>
           )}
         </div>
-        <div className="p-4">
-          <h3 className="text-lg font-bold text-gray-900 group-hover:text-red-700 transition-colors">{product.name}</h3>
-          <div className="mt-1">
-            {product.onSale ? (
-              <div className="flex items-center gap-2">
-                <p className="text-base font-semibold text-green-700">
-                  ${typeof currentPrice === 'number' ? currentPrice.toLocaleString('es-AR') : 'Sin precio'}
-                </p>
-                <p className="text-sm line-through text-gray-500">
-                  ${typeof fakeOriginalPrice === 'number' ? fakeOriginalPrice.toLocaleString('es-AR') : ''}
-                </p>
-                <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-md">15% OFF</span>
-              </div>
-            ) : (
-              <p className="text-base font-semibold text-green-700">
-                ${typeof product.price === 'number' ? product.price.toLocaleString('es-AR') : 'Sin precio'}
-              </p>
-            )}
-          </div>
-          <p className="text-gray-600 mt-1 text-sm line-clamp-2">{product.description}</p>
-
-          <div className="mt-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-700">Stock total: {totalStock}</span>
-            </div>
-          </div>
-        </div>
+        <div className="flex-1" />
+        <Link href={`/products/${product.id}`} className="mt-3 w-full inline-block text-center bg-gradient-to-r from-yellow-400 to-pink-500 text-white py-3 rounded-xl font-extrabold hover:from-pink-500 hover:to-yellow-400 transition-all duration-150 shadow-lg text-lg animate-fade-in-up">
+          Ver detalles
+        </Link>
+        {error && <ErrorMessage message={error} />}
       </div>
     </div>
   );

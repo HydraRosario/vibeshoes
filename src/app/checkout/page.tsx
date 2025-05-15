@@ -3,101 +3,99 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { getCart, clearCart } from '@/features/cart';
+import { useRealtimeCart } from '@/hooks/useRealtimeCart';
 import { createOrder } from '@/features/orders';
-import { Cart } from '@/types/cart';
+import { clearCart } from '@/features/cart';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { Cart } from '@/types/cart';
 
-export default function CheckoutPage() {
-  const [loading, setLoading] = useState(false);
-  const [loadingCart, setLoadingCart] = useState(true);
-  const [cart, setCart] = useState<Cart | null>(null);
-  const [shippingAddress, setShippingAddress] = useState({
-    street: '',
-    city: '',
-    state: '',
-    zipCode: ''
-  });
-  const [useProfileAddress, setUseProfileAddress] = useState(true);
-  const [orderMessage, setOrderMessage] = useState('');
+type ShippingAddress = {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+};
+
+function CheckoutPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { cart, loading: loadingCart } = useRealtimeCart(user?.id);
+  const [loading, setLoading] = useState(false);
+  const [orderMessage, setOrderMessage] = useState('');
+  const [useProfileAddress, setUseProfileAddress] = useState(true);
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    street: user?.address?.street || '',
+    city: 'Rosario',  
+    state: 'Santa Fe', 
+    zipCode: '2000'    
+  });
 
   useEffect(() => {
-    const loadCart = async () => {
-      if (user) {
-        const userCart = await getCart(user.id);
-        setCart(userCart);
-
-        // Set shipping address from user profile if available
-        if (user.address && user.address.street) {
-          setShippingAddress({
-            street: user.address.street || '',
-            city: 'Rosario',
-            state: 'Santa Fe',
-            zipCode: '2000'
-          });
-        } else {
-          // Si no tiene dirección, usamos valores por defecto para ciudad, provincia y CP
-          setShippingAddress({
-            street: '',
-            city: 'Rosario',
-            state: 'Santa Fe',
-            zipCode: '2000'
-          });
-        }
-        setLoadingCart(false);
-      }
-    };
-
-    loadCart();
+    if (user && user.address && user.address.street) {
+      setShippingAddress({
+        street: user.address.street,
+        city: 'Rosario', 
+        state: 'Santa Fe', 
+        zipCode: '2000' 
+      });
+    }
   }, [user]);
 
   const formatWhatsAppMessage = () => {
-    if (!cart || !user) return '';
-
-    // Formatear cada producto como una línea de ticket
-    const itemsList = cart.items.map((item, index) =>
-      `${index + 1}. ${item.name}\n   Color: ${item.selectedColor}\n   Talle: ${item.selectedSize}\n   Cantidad: ${item.quantity}\n   Precio: $${item.price.toLocaleString('es-AR')}\n   Subtotal: $${(item.price * item.quantity).toLocaleString('es-AR')}`
-    ).join('\n\n');
-
-    const address = `${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state}, CP: ${shippingAddress.zipCode}`;
+    if (!cart) return '';
     
-    // Obtener fecha y hora actual
-    const now = new Date();
-    const fecha = now.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const hora = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-    
-    // Crear un separador para el ticket
+    // Creamos un separador consistente
     const separador = '--------------------------------';
     
-    return encodeURIComponent(
-      `🔥 *VIBESHOES - NUEVO PEDIDO* 🔥\n\n` +
-      `Hola VIBESHOES, éste es mi carrito personalizado y la información del pedido, dejo todo en sus manos! 😊\n\n` +
-      `${separador}\n` +
-      `📋 *TICKET DE COMPRA #${Math.floor(Math.random() * 10000)}*\n` +
-      `📆 Fecha: ${fecha} - ${hora}\n` +
-      `👤 Cliente: ${user.displayName || user.email}\n` +
-      `${separador}\n\n` +
-      `🛍️ *PRODUCTOS SELECCIONADOS*\n\n${itemsList}\n\n` +
-      `${separador}\n` +
-      `💰 *RESUMEN DE PAGO*\n` +
-      `Subtotal: $${cart.total.toLocaleString('es-AR')}\n` +
-      `Envío: Gratis\n` +
-      `*TOTAL A PAGAR: $${cart.total.toLocaleString('es-AR')}*\n` +
-      `${separador}\n\n` +
-      `📍 *DATOS DE ENVÍO*\n` +
-      `Dirección: ${address}\n` +
-      `Contacto: ${user.email}\n\n` +
-      `${separador}\n` +
-      `¡Gracias por tu compra! 🙏\n` +
-      `Estaremos procesando tu pedido a la brevedad.\n` +
-      `${separador}`
-    );
+    // Obtenemos la fecha y hora actuales formateadas
+    const now = new Date();
+    const fecha = now.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const hora = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: true });
+    
+    // Número de pedido aleatorio de 4 dígitos
+    const numeroPedido = Math.floor(1000 + Math.random() * 9000);
+    
+    // Comenzamos a construir el mensaje conforme al formato exacto
+    let message = `${separador}\n`;
+    message += `Hola VIBESHOES, éste es mi carrito personalizado y la información del pedido, dejo todo en sus manos!\n`;
+    message += `${separador}\n`;
+    message += `  TICKET DE COMPRA #${numeroPedido}\n`;
+    message += `  Fecha: ${fecha} - ${hora}\n`;
+    message += `  Cliente: ${user?.displayName || 'Cliente'}\n`;
+    message += `${separador}\n`;
+    
+    message += `  *PRODUCTOS SELECCIONADOS*\n`;
+    
+    // Detalle de cada producto
+    cart.items.forEach((item: any, index: number) => {
+      message += `${index + 1}. ${item.name}\n`;
+      message += `   Color: ${item.selectedColor}\n`;
+      message += `   Talle: ${item.selectedSize}\n`;
+      message += `   Cantidad: ${item.quantity}\n`;
+      message += `   Precio: $${item.price.toLocaleString('es-AR')}\n`;
+      message += `   Subtotal: $${(item.price * item.quantity).toLocaleString('es-AR')}\n`;
+    });
+    
+    message += `${separador}\n`;
+    message += ` *RESUMEN DE PAGO*\n`;
+    message += `Subtotal: $${cart.total.toLocaleString('es-AR')}\n`;
+    message += `Envío: (Varía según la ubicación)\n`;
+    message += `TOTAL A PAGAR: $${cart.total.toLocaleString('es-AR')} + envío\n`;
+    message += `${separador}\n`;
+    
+    message += ` *DATOS DE ENVÍO*\n`;
+    message += `Dirección: ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.zipCode}\n`;
+    message += `Contacto: ${user?.email || ''}\n`;
+    message += `${separador}\n`;
+    message += `¡Gracias por tu compra!\n`;
+    message += `Estaremos procesando tu pedido a la brevedad.\n`;
+    message += `${separador}`;
+    
+    return encodeURIComponent(message);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!user || !cart) return;
 
     // Verificar si el usuario tiene una dirección registrada
@@ -155,7 +153,6 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-8 text-gray-800">Checkout</h1>
-
       {loadingCart ? (
         <div className="flex justify-center py-12">
           <LoadingSpinner size="lg" />
@@ -164,136 +161,117 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Formulario de envío */}
           <div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800">Dirección de Envío</h2>
-
-              {user.address && user.address.street ? (
-                <div className="mb-4 p-3 bg-gray-50 rounded-md border border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-700">Dirección de tu perfil:</p>
-                      <p className="text-gray-600 mt-1">
-                        {user.address.street}, Rosario, Santa Fe, CP: 2000
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setUseProfileAddress(!useProfileAddress)}
-                      className="text-sm text-blue-600 hover:text-blue-800 underline"
-                    >
-                      {useProfileAddress ? 'Usar otra dirección' : 'Usar esta dirección'}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="mb-4 p-3 bg-yellow-50 rounded-md border border-yellow-200">
-                  <div className="flex items-center">
-                    <div>
-                      <p className="font-medium text-yellow-700">No tienes una dirección registrada</p>
-                      <p className="text-yellow-600 mt-1">
-                        Debes registrar una dirección en tu perfil antes de realizar un pedido.
-                      </p>
+            <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-pink-200 animate-fade-in-up">
+              <h2 className="text-2xl font-extrabold mb-6 text-pink-600 flex items-center gap-2">
+                <svg className="h-6 w-6 text-yellow-400 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" /></svg>
+                Dirección de Envío
+              </h2>
+              <div>
+                {/* Siempre mostrar dirección actual (si existe) */}
+                {user.address && user.address.street && (
+                  <div className="mb-6 bg-gradient-to-br from-yellow-100 via-white to-pink-100 rounded-2xl shadow-lg p-6 border border-pink-100 animate-fade-in-up">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="inline-block px-3 py-1 text-xs font-bold rounded-full bg-pink-100 text-pink-700 mb-2">Dirección de envío</span>
+                        <p className="text-gray-900 font-semibold text-lg">
+                          {user.address.street}, {user.address.city}, {user.address.state}, {user.address.zipCode}
+                        </p>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => router.push('/profile')}
-                        className="mt-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        onClick={() => setUseProfileAddress((prev) => !prev)}
+                        className="ml-4 px-4 py-2 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-yellow-400 hover:from-yellow-400 hover:to-pink-500 shadow transition-all duration-150 text-sm"
                       >
-                        Ir a mi perfil
+                        {useProfileAddress ? 'Editar dirección' : 'Usar dirección guardada'}
                       </button>
                     </div>
                   </div>
-                </div>
-              )}
-
-              {(!user.address?.street && !useProfileAddress) && (
-                <form onSubmit={handleSubmit} className="mt-4">
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="street" className="block text-sm font-medium text-gray-700">
-                        Dirección <span className="text-red-500">*</span>
+                )}
+                {/* Formulario para editar/crear dirección */}
+                {(!user.address?.street || !useProfileAddress) && (
+                  <form onSubmit={handleSubmit} className="mt-4 animate-fade-in-up">
+                    <div className="mb-4">
+                      <label htmlFor="street" className="block text-gray-700 font-bold mb-1">
+                        Calle y número <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         id="street"
                         required
-                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 focus:border-red-500 focus:ring-red-500 text-gray-800"
+                        className="w-full rounded-xl border-none px-4 py-3 shadow focus:ring-2 focus:ring-pink-400 focus:outline-none bg-white/90 text-gray-800 placeholder-gray-400 text-lg"
                         value={shippingAddress.street}
                         onChange={(e) => setShippingAddress({ ...shippingAddress, street: e.target.value })}
                         placeholder="Ej: Av. Córdoba 1234"
                       />
                     </div>
-
-                    <div>
-                      <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                        Ciudad
-                      </label>
-                      <input
-                        type="text"
-                        id="city"
-                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 bg-gray-100 text-gray-800"
-                        value="Rosario"
-                        disabled
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                        Provincia
-                      </label>
-                      <input
-                        type="text"
-                        id="state"
-                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 bg-gray-100 text-gray-800"
-                        value="Santa Fe"
-                        disabled
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700">
-                        Código Postal
-                      </label>
-                      <input
-                        type="text"
-                        id="zipCode"
-                        className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm px-3 py-2 bg-gray-100 text-gray-800"
-                        value="2000"
-                        disabled
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-gray-700 font-bold mb-1">Ciudad</label>
+                        <input
+                          type="text"
+                          className="w-full rounded-xl border-none px-4 py-3 shadow bg-gray-100 text-gray-500 text-lg cursor-not-allowed"
+                          value="Rosario"
+                          disabled
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-bold mb-1">Provincia</label>
+                        <input
+                          type="text"
+                          className="w-full rounded-xl border-none px-4 py-3 shadow bg-gray-100 text-gray-500 text-lg cursor-not-allowed"
+                          value="Santa Fe"
+                          disabled
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 font-bold mb-1">Código Postal</label>
+                        <input
+                          type="text"
+                          className="w-full rounded-xl border-none px-4 py-3 shadow bg-gray-100 text-gray-500 text-lg cursor-not-allowed"
+                          value="2000"
+                          disabled
+                        />
+                      </div>
                     </div>
                     <div className="mt-2 text-gray-700 text-sm bg-gray-50 p-3 rounded-md border border-gray-200">
                       <p><strong>Nota:</strong> Actualmente solo realizamos envíos en la ciudad de Rosario.</p>
                     </div>
+                    <button
+                      type="submit"
+                      disabled={loading || !cart || cart.items.length === 0}
+                      className="mt-6 w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      {loading ? <LoadingSpinner size="sm" /> : 'Confirmar Pedido'}
+                    </button>
+                  </form>
+                )}
+                {/* Botón de confirmar pedido si ya tiene dirección y no está editando */}
+                {user.address?.street && useProfileAddress && (
+                  <button
+                    onClick={handleSubmit}
+                    disabled={loading || !cart || cart.items.length === 0}
+                    className="mt-6 w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {loading ? <LoadingSpinner size="sm" /> : 'Confirmar Pedido'}
+                  </button>
+                )}
+                {orderMessage && (
+                  <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md border border-green-200">
+                    {orderMessage}
                   </div>
-                </form>
-              )}
-
-              {orderMessage && (
-                <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-md border border-green-200">
-                  {orderMessage}
-                </div>
-              )}
-
-              <button
-                onClick={handleSubmit}
-                disabled={loading || !cart || cart.items.length === 0}
-                className="mt-6 w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {loading ? <LoadingSpinner size="sm" /> : 'Confirmar Pedido'}
-              </button>
+                )}
+              </div>
             </div>
           </div>
-
           {/* Resumen del pedido */}
           <div>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-4 text-gray-800">Resumen del Pedido</h2>
-
               {!cart || cart.items.length === 0 ? (
                 <p className="text-gray-600 py-4">Tu carrito está vacío</p>
               ) : (
                 <>
-                  {cart.items.map((item) => (
+                  {cart.items.map((item: any) => (
                     <div key={`${item.productId}-${item.selectedColor}-${item.selectedSize}`} className="flex justify-between py-2 border-b border-gray-100">
                       <div className="flex-1">
                         <p className="text-gray-800">{item.name}</p>
@@ -321,3 +299,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+export default CheckoutPage;

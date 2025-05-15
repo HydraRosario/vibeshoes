@@ -17,7 +17,19 @@ export const addReview = async (review: Omit<Review, 'id' | 'createdAt' | 'updat
 export const getReviewsByProduct = async (productId: string): Promise<Review[]> => {
   const q = query(collection(db, REVIEWS_COLLECTION), where('productId', '==', productId));
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as Review));
+  return snapshot.docs.map(docSnap => {
+    const data = docSnap.data();
+    return {
+      id: docSnap.id,
+      ...data,
+      createdAt: data.createdAt && typeof data.createdAt.toDate === 'function'
+        ? data.createdAt.toDate()
+        : new Date(data.createdAt),
+      updatedAt: data.updatedAt && typeof data.updatedAt.toDate === 'function'
+        ? data.updatedAt.toDate()
+        : new Date(data.updatedAt),
+    } as Review;
+  });
 };
 
 export const getReviewByUserAndProduct = async (userId: string, productId: string): Promise<Review | null> => {
@@ -25,7 +37,17 @@ export const getReviewByUserAndProduct = async (userId: string, productId: strin
   const snapshot = await getDocs(q);
   if (snapshot.empty) return null;
   const docSnap = snapshot.docs[0];
-  return { id: docSnap.id, ...docSnap.data() } as Review;
+  const data = docSnap.data();
+  return {
+    id: docSnap.id,
+    ...data,
+    createdAt: data.createdAt && typeof data.createdAt.toDate === 'function'
+      ? data.createdAt.toDate()
+      : new Date(data.createdAt),
+    updatedAt: data.updatedAt && typeof data.updatedAt.toDate === 'function'
+      ? data.updatedAt.toDate()
+      : new Date(data.updatedAt),
+  } as Review;
 };
 
 export const updateReview = async (reviewId: string, updates: Partial<Review>): Promise<void> => {
