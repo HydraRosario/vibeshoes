@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, doc, getDocs, addDoc, updateDoc, getDoc, query, where } from 'firebase/firestore';
+import { collection, doc, getDocs, addDoc, updateDoc, getDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { Order, OrderItem } from '@/types/order';
 import { Cart } from '@/types/cart';
 
@@ -8,7 +8,9 @@ const ORDERS_COLLECTION = 'orders';
 export const createOrder = async (
   userId: string,
   cart: Cart,
-  shippingAddress: Order['shippingAddress']
+  shippingAddress: Order['shippingAddress'],
+  userEmail?: string,
+  userName?: string
 ): Promise<Order | null> => {
   try {
     const now = new Date();
@@ -17,13 +19,19 @@ export const createOrder = async (
       items: cart.items.map((item): OrderItem => ({
         productId: item.productId,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        name: item.name,
+        selectedColor: item.selectedColor,
+        selectedSize: item.selectedSize,
+        imageUrl: item.imageUrl
       })),
       total: cart.total,
-      status: 'pending',
+      status: 'pendiente',
       shippingAddress,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      userEmail,
+      userName
     };
 
     const docRef = await addDoc(collection(db, ORDERS_COLLECTION), {
@@ -122,6 +130,34 @@ export const getOrdersByStatus = async (status: Order['status']): Promise<Order[
     });
   } catch (error) {
     console.error('Error al obtener órdenes por estado:', error);
+    return [];
+  }
+};
+
+export const deleteOrder = async (orderId: string): Promise<boolean> => {
+  try {
+    await deleteDoc(doc(db, ORDERS_COLLECTION, orderId));
+    return true;
+  } catch (error) {
+    console.error('Error al eliminar la orden:', error);
+    return false;
+  }
+};
+
+export const getAllOrders = async (): Promise<Order[]> => {
+  try {
+    const snapshot = await getDocs(collection(db, ORDERS_COLLECTION));
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: new Date(data.createdAt),
+        updatedAt: new Date(data.updatedAt)
+      } as Order;
+    });
+  } catch (error) {
+    console.error('Error al obtener todas las órdenes:', error);
     return [];
   }
 };

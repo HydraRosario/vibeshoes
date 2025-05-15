@@ -11,7 +11,5 @@ export interface User {
     city: string;
     state: string;
     zipCode: string;
-    lat?: number;
-    lng?: number;
   };
 }

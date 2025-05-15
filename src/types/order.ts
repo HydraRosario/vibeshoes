@@ -2,6 +2,10 @@ export interface OrderItem {
   productId: string;
   quantity: number;
   price: number;
+  name?: string;
+  selectedColor?: string;
+  selectedSize?: string | number;
+  imageUrl?: string;
 }
 
 export interface Order {
@@ -9,7 +13,7 @@ export interface Order {
   userId: string;
   items: OrderItem[];
   total: number;
-  status: 'pending' | 'paid' | 'shipped';
+  status: 'pendiente' | 'aceptado' | 'enviado';
   shippingAddress: {
     street: string;
     city: string;
@@ -18,4 +22,6 @@ export interface Order {
   };
   createdAt: Date;
   updatedAt: Date;
+  userEmail?: string;
+  userName?: string;
 }

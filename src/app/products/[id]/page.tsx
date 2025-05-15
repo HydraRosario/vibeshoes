@@ -213,6 +213,16 @@ export default function ProductDetailPage() {
                 window.location.href = '/login';
                 return;
               }
+              
+              // Verificar si el usuario tiene una dirección registrada
+              if (!user.address || !user.address.street) {
+                toast.error('Debes registrar una dirección en tu perfil antes de agregar productos al carrito');
+                setTimeout(() => {
+                  window.location.href = '/profile';
+                }, 1500);
+                return;
+              }
+              
               if (!selectedVariation) {
                 toast.error('Selecciona color');
                 return;
@@ -252,6 +262,19 @@ export default function ProductDetailPage() {
           >
             {adding ? <LoadingSpinner size="sm" className="text-white" /> : selectedVariation && selectedVariation.stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}
           </button>
+          
+          {isAuthenticated && user && (!user.address || !user.address.street) && (
+            <div className="mt-3 p-3 bg-yellow-50 rounded-md border border-yellow-200 text-sm text-yellow-700">
+              <p className="font-medium">Atención: Dirección requerida</p>
+              <p className="mt-1">Debes registrar una dirección en tu perfil antes de poder agregar productos al carrito.</p>
+              <button 
+                onClick={() => window.location.href = '/profile'}
+                className="mt-2 px-4 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
+              >
+                Ir a mi perfil
+              </button>
+            </div>
+          )}
         </div>
       </div>
       {/* Productos relacionados */}
