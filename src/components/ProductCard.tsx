@@ -238,7 +238,7 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
           )}
         </div>
         <div className="flex-1" />
-        <Link href={`/products/${product.id}`} className="mt-3 w-full inline-block text-center bg-gradient-to-r from-yellow-400 to-pink-500 text-white py-3 rounded-xl font-extrabold hover:from-pink-500 hover:to-yellow-400 transition-all duration-150 shadow-lg text-lg animate-fade-in-up">
+        <Link href={`/products/${product.id}`} className="mt-3 w-full inline-block text-center bg-gradient-to-r from-red-700 via-red-600 to-red-500 text-red-50 py-3 rounded-xl font-extrabold hover:from-red-800 hover:to-red-600 transition-all duration-150 shadow-lg text-lg animate-fade-in-up">
           Ver detalles
         </Link>
         {error && <ErrorMessage message={error} />}

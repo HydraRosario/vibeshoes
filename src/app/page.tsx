@@ -24,9 +24,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-100">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-red-50 to-red-600">
       {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      <div className="bg-gradient-to-br from-red-100 via-red-200 to-red-50 overflow-hidden">
         {/* Fondo SVG animado */}
         <div className="absolute inset-0 -z-10 animate-gradient-move">
           <svg width="100%" height="100%" viewBox="0 0 1440 320" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
@@ -34,9 +34,9 @@ export default function Home() {
           </svg>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight drop-shadow-lg">Bienvenido a <span className="text-white bg-red-700 px-3 py-1 rounded-xl shadow-md">VIBE SHOES</span></h1>
-          <p className="text-2xl md:text-3xl mb-10 text-gray-100/90 font-light">Tu fuente exclusiva para las últimas zapatillas a precios imbatibles.<br className="hidden md:block" /> Empieza tu colección hoy.</p>
-          <a href="/products" className="inline-block bg-white text-red-700 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-gray-100 hover:scale-105 transition-all duration-200">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight drop-shadow-lg">Bienvenido a <span className="text-red-400 bg-gradient-to-r from-red-700 via-red-600 to-red-500 px-3 py-1 rounded-xl shadow-md">VIBE SHOES</span></h1>
+          <p className="text-2xl md:text-3xl mb-10 text-red-800/90 font-light">Tu fuente exclusiva para las últimas zapatillas a precios imbatibles.<br className="hidden md:block" /> Empieza tu colección hoy.</p>
+          <a href="/products" className="inline-block bg-red-50 text-red-700 px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:from-red-800 hover:to-red-600 hover:scale-105 transition-all duration-200">
             Comprar Ahora
           </a>
         </div>
@@ -44,10 +44,10 @@ export default function Home() {
 
       {/* Featured Products */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <h2 className="text-4xl font-extrabold mb-10 text-center text-gray-900 animate-fade-in">Zapatillas Destacadas</h2>
+        <h2 className="text-4xl font-extrabold mb-10 text-center text-red-400 animate-fade-in">Zapatillas Destacadas</h2>
         {loading ? (
           <div className="flex justify-center items-center min-h-[200px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-700"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-800"></div>
           </div>
         ) : products.length === 0 ? (
           <p className="text-center text-gray-500">No hay productos disponibles.</p>
@@ -61,7 +61,7 @@ export default function Home() {
           </div>
         )}
         <div className="text-center mt-16">
-          <a href="/products" className="inline-block bg-gray-900 text-white px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:bg-gray-800 hover:scale-105 transition-all duration-200">
+          <a href="/products" className="inline-block bg-gradient-to-r from-red-700 via-red-600 to-red-500 text-white px-10 py-4 rounded-full font-bold text-lg shadow-lg hover:from-red-800 hover:to-red-600 hover:scale-105 transition-all duration-200">
             Ver Todos los Productos
           </a>
         </div>

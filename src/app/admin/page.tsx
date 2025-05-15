@@ -2,9 +2,7 @@
 import { useEffect, useState } from "react";
 import { getProducts } from "@/features/products";
 import { getAllOrders } from "../../features/orders";
-// import { Chart, registerables } from "chart.js";
-// import { Bar, Pie } from "react-chartjs-2";
-// Chart.register(...registerables);
+import { DashboardCharts } from "./DashboardCharts";
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState<any[]>([]);
@@ -89,7 +87,9 @@ export default function AdminDashboard() {
           Cargando datos...
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
+        <>
+          <DashboardCharts products={products} orders={orders} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl">
           {/* Stock por producto */}
           <div className="bg-white/90 rounded-3xl shadow-2xl p-8 border border-red-100 transition-all hover:shadow-red-300 animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">
@@ -169,6 +169,7 @@ export default function AdminDashboard() {
             </ul>
           </div>
         </div>
+        </>
       )}
     </div>
   );
