@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="bg-gradient-to-r from-red-700 via-red-800 to-red-900 text-red-100 py-3 mt-8" role="contentinfo" aria-label="Pie de página">
+  <footer className="bg-gradient-to-r from-orange-700 via-orange-800 to-orange-900 text-orange-100 py-3 mt-8" role="contentinfo" aria-label="Pie de página">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center py-1">
           <p className="text-gray-400">

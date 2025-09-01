@@ -66,7 +66,7 @@ function VariationCarousel({ variations, alt }: { variations: { images?: string[
           {images.map((_, i) => (
             <span
               key={i}
-              className={`w-2 h-2 rounded-full ${idx === i ? 'bg-red-600' : 'bg-gray-300'}`}
+              className={`w-2 h-2 rounded-full ${idx === i ? 'bg-orange-600' : 'bg-gray-300'}`}
               style={{ display: 'inline-block' }}
             />
           ))}
@@ -129,7 +129,7 @@ function Carousel({ images, alt, smallArrows = false }: { images: string[]; alt:
           {images.map((_, i) => (
             <span
               key={i}
-              className={`w-2 h-2 rounded-full ${imgIdx === i ? 'bg-red-600' : 'bg-gray-300'}`}
+              className={`w-2 h-2 rounded-full ${imgIdx === i ? 'bg-orange-600' : 'bg-gray-300'}`}
               style={{ display: 'inline-block' }}
             />
           ))}
@@ -238,7 +238,7 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
           )}
         </div>
         <div className="flex-1" />
-        <Link href={`/products/${product.id}`} className="mt-3 w-full inline-block text-center bg-gradient-to-r from-red-700 via-red-600 to-red-500 text-red-50 py-3 rounded-xl font-extrabold hover:from-red-800 hover:to-red-600 transition-all duration-150 shadow-lg text-lg animate-fade-in-up">
+  <Link href={`/products/${product.id}`} className="mt-3 w-full inline-block text-center bg-gradient-to-r from-orange-700 via-orange-600 to-orange-500 text-orange-50 py-3 rounded-xl font-extrabold hover:from-orange-800 hover:to-orange-600 transition-all duration-150 shadow-lg text-lg animate-fade-in-up">
           Ver detalles
         </Link>
         {error && <ErrorMessage message={error} />}
