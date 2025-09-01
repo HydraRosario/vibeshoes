@@ -48,7 +48,7 @@ export function Navbar() {
                 </Link>
                 <Link
                   href="/profile"
-                  className="bg-white/20 hover:bg-yellow-100 focus:bg-yellow-200 text-white hover:text-orange-700 focus:text-orange-800 px-4 py-2 rounded-full transition-all duration-200 flex items-center space-x-2 font-medium shadow-sm hover:shadow outline-none"
+                  className="bg-white/20 hover:bg-yellow-100 focus:bg-yellow-200 text-white hover:text-red-700 focus:text-red-800 px-4 py-2 rounded-full transition-all duration-200 flex items-center space-x-2 font-medium shadow-sm hover:shadow outline-none"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
@@ -65,7 +65,7 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="bg-white text-orange-700 px-4 py-2 rounded-md hover:bg-gray-100 transition-colors font-semibold"
+                className="bg-white text-red-700 px-4 py-2 rounded-md hover:bg-gray-100 transition-colors font-semibold"
               >
                 Iniciar Sesión
               </Link>

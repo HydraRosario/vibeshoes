@@ -87,7 +87,7 @@ export function FloatingCart() {
       {cart && cart.items.length > 0 && (
         <div className="flex justify-between items-center border-t pt-2 mt-2">
           <span className="font-semibold text-gray-700">Total:</span>
-          <span className="font-bold text-orange-700">{cart.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
+          <span className="font-bold text-red-700">{cart.total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 })}</span>
         </div>
       )}
     </div>
