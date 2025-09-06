@@ -8,7 +8,8 @@ import { auth, db, googleProvider } from '@/lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { User } from '@/types/user';
 
-const ADMIN_EMAILS = ['bautistavideau@gmail.com']; // Reemplaza con tu email
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(',') || [];
+//const ADMIN_EMAILS = ['bautistavideau@gmail.com']; // Reemplaza con tu email
 
 export const loginWithEmail = async (email: string, password: string) => {
   try {
