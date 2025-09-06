@@ -192,22 +192,22 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
               </div>
-<div className="mt-2 text-sm text-gray-700">
-  <span className="font-semibold">Stock:</span> {selectedVariation?.stock}
-</div>
-<div className="mt-2 text-sm text-gray-700">
-  <span className="font-semibold">Talle:</span>
-  <select
-    className="input-field ml-2"
-    value={selectedTalle}
-    onChange={e => setSelectedTalle(e.target.value)}
-  >
-    <option value="">Seleccionar talle</option>
-    {[35,36,37,38,39,40,41,42,43,44].map((t) => (
-      <option key={t} value={t}>{t}</option>
-    ))}
-  </select>
-</div>
+              <div className="mt-2 text-sm text-gray-700">
+                <span className="font-semibold">Stock:</span> {selectedVariation?.stock}
+              </div>
+              <div className="mt-2 text-sm text-gray-700">
+                <span className="font-semibold">Talle:</span>
+                <select
+                  className="input-field ml-2"
+                  value={selectedTalle}
+                  onChange={e => setSelectedTalle(e.target.value)}
+                >
+                  <option value="">Seleccionar talle</option>
+                  {(selectedVariation?.tallesDisponibles || []).map((t) => (
+                    <option key={String(t)} value={String(t)}>{t}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
           <button
@@ -232,6 +232,14 @@ export default function ProductDetailPage() {
               }
               if (!selectedTalle) {
                 toast.error('Selecciona talle');
+                return;
+              }
+              // Validar que el talle pertenezca a la variación seleccionada
+              const talleDisponible = (selectedVariation.tallesDisponibles || [])
+                .map((t) => String(t))
+                .includes(String(selectedTalle));
+              if (!talleDisponible) {
+                toast.error('El talle seleccionado no está disponible para este color');
                 return;
               }
               if (selectedVariation.stock <= 0) {

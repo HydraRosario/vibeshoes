@@ -59,7 +59,7 @@ function CheckoutPage() {
     let message = `${separador}\n`;
     message += `Hola VIBESHOES, éste es mi carrito personalizado y la información del pedido, dejo todo en sus manos!\n`;
     message += `${separador}\n`;
-    message += `  TICKET DE COMPRA #${numeroPedido}\n`;
+    message += `  TICKET DE PEDIDO #${numeroPedido}\n`;
     message += `  Fecha: ${fecha} - ${hora}\n`;
     message += `  Cliente: ${user?.displayName || 'Cliente'}\n`;
     message += `${separador}\n`;
@@ -77,20 +77,20 @@ function CheckoutPage() {
     });
     
     message += `${separador}\n`;
-    message += ` *RESUMEN DE PAGO*\n`;
+    message += ` *RESUMEN DEL PEDIDO*\n`;
     message += `Subtotal: $${cart.total.toLocaleString('es-AR')}\n`;
     message += `Envío: (Varía según la ubicación)\n`;
-    message += `TOTAL A PAGAR: $${cart.total.toLocaleString('es-AR')} + envío\n`;
+    message += `TOTAL ESTIMADO: $${cart.total.toLocaleString('es-AR')} + envío\n`;
     message += `${separador}\n`;
     
     message += ` *DATOS DE ENVÍO*\n`;
     message += `Dirección: ${shippingAddress.street}, ${shippingAddress.city}, ${shippingAddress.state}, ${shippingAddress.zipCode}\n`;
     message += `Contacto: ${user?.email || ''}\n`;
     message += `${separador}\n`;
-    message += `¡Gracias por tu compra!\n`;
-    message += `Estaremos procesando tu pedido a la brevedad.\n`;
+    message += `¡Gracias por tu pedido!\n`;
+    message += `Te contactaremos para coordinar el pago y el envío.\n`;
     message += `${separador}`;
-    
+
     return encodeURIComponent(message);
   };
 
@@ -127,11 +127,32 @@ function CheckoutPage() {
             console.error('No se pudo vaciar el carrito después del pedido:', err);
           }
         }
-        // Generate WhatsApp message and redirect
-        const whatsappMessage = formatWhatsAppMessage();
+        // Enviar mensaje: usar API server-side si está habilitada; sino, fallback a wa.me
+        const whatsappMessage = decodeURIComponent(formatWhatsAppMessage());
         const whatsappNumber = process.env.NEXT_PUBLIC_ADMIN_CEL; // Número de WhatsApp del coordinador
-        window.open(`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`, '_blank');
-        setOrderMessage('¡Pedido realizado con éxito! Redirigiendo a WhatsApp para finalizar...');
+        const useApi = process.env.NEXT_PUBLIC_USE_WHATSAPP_API === 'true';
+        let sentVia = 'wa.me';
+        try {
+          if (useApi) {
+            const res = await fetch('/api/whatsapp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ to: whatsappNumber, text: whatsappMessage })
+            });
+            if (!res.ok) throw new Error('WhatsApp API error');
+            sentVia = 'api';
+          } else {
+            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+          }
+        } catch (err) {
+          // Fallback a wa.me si la API falla
+          try {
+            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
+          } catch {}
+        }
+        setOrderMessage(sentVia === 'api' 
+          ? '¡Pedido realizado con éxito! Hemos notificado por WhatsApp al coordinador.'
+          : '¡Pedido realizado con éxito! Redirigiendo a WhatsApp para finalizar...');
 
         // Redirect to home page after a short delay
         setTimeout(() => {
