@@ -5,6 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { Cart } from '@/types/cart';
 import { getCart, updateCartItemQuantity, removeFromCart, clearCart } from '@/features/cart';
+import { getProducts } from '@/features/products';
+
 import { TrashIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -18,6 +20,7 @@ export default function CartPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [clearingCart, setClearingCart] = useState(false);
+  const [invalidItems, setInvalidItems] = useState<string[]>([]);
 
   const handleClearCart = async () => {
     if (!user) return;
@@ -36,8 +39,27 @@ export default function CartPage() {
     if (!user) return;
     
     try {
-      const cartData = await getCart(user.id);
+      const [cartData, products] = await Promise.all([
+        getCart(user.id),
+        getProducts()
+      ]);
       setCart(cartData);
+
+      // Validar ítems del carrito contra productos actuales
+      const invalid: string[] = [];
+      if (cartData && cartData.items) {
+        for (const item of cartData.items) {
+          const product = products.find(p => p.id === item.productId);
+          if (!product) { invalid.push(`${item.productId}-${item.selectedColor}-${item.selectedSize}`); continue; }
+          const variation = product.variations?.find(v => v.color === item.selectedColor);
+          const talleOk = variation?.tallesDisponibles?.map(String).includes(String(item.selectedSize));
+          const stockOk = (variation?.stock || 0) > 0;
+          if (!variation || !talleOk || !stockOk) {
+            invalid.push(`${item.productId}-${item.selectedColor}-${item.selectedSize}`);
+          }
+        }
+      }
+      setInvalidItems(invalid);
     } catch (error) {
       console.error('Error al cargar el carrito:', error);
       toast.error('Error al cargar el carrito');
@@ -152,6 +174,11 @@ export default function CartPage() {
                     </p>
                   </div>
                   <div className="flex flex-col space-y-3">
+                    {invalidItems.includes(item.productId + '-' + item.selectedColor + '-' + item.selectedSize) && (
+                      <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-2">
+                        Este item ya no está disponible en el talle/color seleccionados. Elimínalo o edítalo.
+                      </div>
+                    )}
                     <div className="flex items-center border-2 border-pink-200 rounded-xl shadow bg-white overflow-hidden">
                       <button
                         className="px-4 py-2 bg-pink-100 text-pink-700 font-bold hover:bg-pink-200 disabled:opacity-50 transition-colors text-xl"
@@ -196,12 +223,13 @@ export default function CartPage() {
 
               <button
                 onClick={() => router.push('/checkout')}
-                className="mt-4 w-full bg-gradient-to-r from-pink-500 to-yellow-400 text-white px-6 py-3 rounded-xl hover:from-yellow-400 hover:to-pink-500 font-extrabold text-lg shadow-lg transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 animate-fade-in-up"
+                disabled={invalidItems.length > 0}
+                className={`mt-4 w-full px-6 py-3 rounded-xl font-extrabold text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-2 animate-fade-in-up ${invalidItems.length>0 ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-gradient-to-r from-pink-500 to-yellow-400 text-white hover:from-yellow-400 hover:to-pink-500 transform hover:scale-105'}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                Proceder al Pago
+                {invalidItems.length>0 ? 'Revisa los items inválidos' : 'Proceder al Pago'}
               </button>
             </div>
           </div>

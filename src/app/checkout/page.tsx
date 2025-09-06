@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeCart } from '@/hooks/useRealtimeCart';
 import { createOrder } from '@/features/orders';
 import { clearCart } from '@/features/cart';
+import { getProducts } from '@/features/products';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Cart } from '@/types/cart';
 
@@ -109,6 +110,23 @@ function CheckoutPage() {
 
     setLoading(true);
     try {
+      // Revalidar carrito contra estado actual de productos (stock y talles)
+      const products = await getProducts();
+      const invalid: string[] = [];
+      for (const item of cart.items) {
+        const prod = products.find(p => p.id === item.productId);
+        if (!prod) { invalid.push(`${item.productId}-${item.selectedColor}-${item.selectedSize}`); continue; }
+        const variation = prod.variations?.find(v => v.color === item.selectedColor);
+        const talleOk = variation?.tallesDisponibles?.map(String).includes(String(item.selectedSize));
+        const stockOk = (variation?.stock || 0) > 0;
+        if (!variation || !talleOk || !stockOk) {
+          invalid.push(`${item.productId}-${item.selectedColor}-${item.selectedSize}`);
+        }
+      }
+      if (invalid.length > 0) {
+        setOrderMessage('Algunos items de tu carrito ya no están disponibles en el talle/color seleccionados. Por favor, regresa al carrito para corregirlos.');
+        return;
+      }
       // Create the order in the database
       const order = await createOrder(
         user.id, 

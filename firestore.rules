@@ -33,5 +33,17 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update: if isAdmin();
     }
+
+    // Reglas para reseñas/comentarios de productos
+    match /reviews/{reviewId} {
+      // Lectura pública de reviews
+      allow read: if true;
+      // Crear solo usuarios autenticados
+      allow create: if isAuthenticated();
+      // Actualizar/eliminar: dueño de la review o admin
+      allow update, delete: if isAuthenticated() && (
+        isAdmin() || request.auth.uid == resource.data.userId
+      );
+    }
   }
 }

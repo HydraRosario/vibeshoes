@@ -203,9 +203,14 @@ export default function ProductDetailPage() {
                   onChange={e => setSelectedTalle(e.target.value)}
                 >
                   <option value="">Seleccionar talle</option>
-                  {(selectedVariation?.tallesDisponibles || []).map((t) => (
-                    <option key={String(t)} value={String(t)}>{t}</option>
-                  ))}
+                  {[35,36,37,38,39,40,41,42,43,44].map((t) => {
+                    const disponible = (selectedVariation?.tallesDisponibles || []).map(String).includes(String(t));
+                    return (
+                      <option key={t} value={String(t)} disabled={!disponible}>
+                        {t}{!disponible ? ' (no disp.)' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             </div>
@@ -268,7 +273,12 @@ export default function ProductDetailPage() {
                 setAdding(false);
               }
             }}
-            disabled={adding || !selectedVariation || selectedVariation.stock <= 0}
+            disabled={(() => {
+              if (adding || !selectedVariation || selectedVariation.stock <= 0) return true;
+              if (!selectedTalle) return true;
+              const talleOk = (selectedVariation.tallesDisponibles || []).map(String).includes(String(selectedTalle));
+              return !talleOk;
+            })()}
             className="btn-primary w-full text-lg py-3 flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {adding ? <LoadingSpinner size="sm" className="text-white" /> : selectedVariation && selectedVariation.stock > 0 ? 'Añadir al Carrito' : 'Sin Stock'}

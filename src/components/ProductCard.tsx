@@ -148,6 +148,7 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
   const [selectedVariationIdx, setSelectedVariationIdx] = useState(0);
   const variations = product.variations || [];
   const selectedVariation = variations[selectedVariationIdx];
+  const hasVariationImages = variations.some(v => v.images && v.images.length > 0);
 
   // Flechas para cambiar variación
   const handleNextVariation = (e: React.MouseEvent) => {
@@ -206,14 +207,12 @@ export function ProductCard({ product, showVariationsGrid = false }: ProductCard
   return (
     <div className="group relative flex flex-col rounded-3xl bg-gradient-to-br from-pink-50 via-white to-yellow-50 shadow-2xl hover:shadow-pink-300 transition-shadow duration-200 overflow-hidden border-2 border-pink-100 animate-fade-in-up">
       <Link href={`/products/${product.id}`} className="block relative h-56 w-full">
-        {product.variations && product.variations.length > 0 ? (
+        {hasVariationImages ? (
           <VariationCarousel variations={product.variations} alt={product.name} />
+        ) : product.images && product.images.length > 0 ? (
+          <Carousel images={product.images} alt={product.name} />
         ) : (
-          product.images && product.images.length > 0 ? (
-            <Carousel images={product.images} alt={product.name} />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">Sin imagen</div>
-          )
+          <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">Sin imagen</div>
         )}
         {product.onSale && (
           <span className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-yellow-400 text-white text-xs font-extrabold px-4 py-1 rounded-full shadow-lg animate-bounce">Oferta</span>
