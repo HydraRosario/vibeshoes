@@ -8,7 +8,7 @@ import { auth, db, googleProvider } from '@/lib/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { User } from '@/types/user';
 
-const ADMIN_EMAILS = ['vibeshoes8@gmail.com']; // Reemplaza con tu email
+const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAIL ? [process.env.NEXT_PUBLIC_ADMIN_EMAIL] : [];
 
 export const loginWithEmail = async (email: string, password: string) => {
   try {

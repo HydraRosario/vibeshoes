@@ -129,7 +129,7 @@ function CheckoutPage() {
         }
         // Generate WhatsApp message and redirect
         const whatsappMessage = formatWhatsAppMessage();
-        const whatsappNumber = '5493415840614'; // Número de WhatsApp del coordinador
+        const whatsappNumber = process.env.NEXT_PUBLIC_ADMIN_CEL; // Número de WhatsApp del coordinador
         window.open(`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`, '_blank');
         setOrderMessage('¡Pedido realizado con éxito! Redirigiendo a WhatsApp para finalizar...');
 

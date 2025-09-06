@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={inter.variable} suppressHydrationWarning>
-      <body className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col">
+                  <body className="min-h-screen bg-gray-50 font-sans antialiased flex flex-col overflow-x-hidden">
         <Suspense fallback={null}>
           <Navbar />
           <main className="flex-grow">{children}</main>
