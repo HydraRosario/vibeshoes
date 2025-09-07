@@ -13,7 +13,7 @@ export interface Order {
   userId: string;
   items: OrderItem[];
   total: number;
-  status: 'pendiente' | 'aceptado' | 'enviado';
+  status: 'pendiente' | 'aceptado' | 'rechazado' | 'enviado';
   shippingAddress: {
     street: string;
     city: string;
@@ -24,4 +24,9 @@ export interface Order {
   updatedAt: Date;
   userEmail?: string;
   userName?: string;
+  // Campos de pago
+  preferenceId?: string;
+  paymentId?: string;
+  paymentStatus?: string; // approved, rejected, pending
+  externalReference?: string; // orderId
 }

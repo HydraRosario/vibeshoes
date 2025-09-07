@@ -31,7 +31,8 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid || isAdmin()
       );
       allow create: if isAuthenticated();
-      allow update: if isAdmin();
+      // Permitir que el dueño actualice campos de su propia orden (para flujo de pago)
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
     }
 
     // Reglas para reseñas/comentarios de productos

@@ -136,46 +136,38 @@ function CheckoutPage() {
         user.displayName || undefined
       );
       if (order) {
-        // Vaciar el carrito después de crear el pedido
-        if (user?.id) {
-          try {
-            await clearCart(user.id);
-          } catch (err) {
-            // No bloquear el flujo si falla, pero mostrar en consola
-            console.error('No se pudo vaciar el carrito después del pedido:', err);
-          }
-        }
-        // Enviar mensaje: usar API server-side si está habilitada; sino, fallback a wa.me
-        const whatsappMessage = decodeURIComponent(formatWhatsAppMessage());
-        const whatsappNumber = process.env.NEXT_PUBLIC_ADMIN_CEL; // Número de WhatsApp del coordinador
-        const useApi = process.env.NEXT_PUBLIC_USE_WHATSAPP_API === 'true';
-        let sentVia = 'wa.me';
-        try {
-          if (useApi) {
-            const res = await fetch('/api/whatsapp', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ to: whatsappNumber, text: whatsappMessage })
-            });
-            if (!res.ok) throw new Error('WhatsApp API error');
-            sentVia = 'api';
-          } else {
-            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
-          }
-        } catch (err) {
-          // Fallback a wa.me si la API falla
-          try {
-            window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`, '_blank');
-          } catch {}
-        }
-        setOrderMessage(sentVia === 'api' 
-          ? '¡Pedido realizado con éxito! Hemos notificado por WhatsApp al coordinador.'
-          : '¡Pedido realizado con éxito! Redirigiendo a WhatsApp para finalizar...');
+        // Crear la preferencia de pago y redirigir a Mercado Pago
+        const items = cart.items.map((i) => ({
+          title: i.name,
+          quantity: Number(i.quantity),
+          unit_price: Number(i.price),
+          picture_url: i.imageUrl || undefined,
+        }));
 
-        // Redirect to home page after a short delay
-        setTimeout(() => {
-          router.push('/');
-        }, 3000);
+        try {
+          const prefRes = await fetch('/api/payments/create-preference', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: order.id,
+              userId: user.id,
+              userEmail: user.email,
+              userName: user.displayName,
+              items,
+              total: cart.total,
+            })
+          });
+          if (!prefRes.ok) throw new Error('No se pudo crear la preferencia de pago');
+          const data = await prefRes.json();
+          if (data.init_point) {
+            window.location.href = data.init_point;
+            return;
+          }
+          setOrderMessage('No se pudo iniciar el pago. Intenta nuevamente.');
+        } catch (err) {
+          console.error('Error al iniciar pago MP:', err);
+          setOrderMessage('No se pudo iniciar el pago. Intenta nuevamente.');
+        }
       }
     } catch (error) {
       console.error('Error al procesar el pedido:', error);
