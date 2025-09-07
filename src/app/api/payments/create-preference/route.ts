@@ -17,7 +17,11 @@ export async function POST(req: Request) {
     }
 
     const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
-    const SITE_URL = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    // Resolve SITE_URL: prefer explicit env, otherwise infer from request headers in Vercel/Next
+    const forwardedProto = (req.headers.get('x-forwarded-proto') || '').split(',')[0]?.trim();
+    const host = req.headers.get('host');
+    const inferredOrigin = forwardedProto && host ? `${forwardedProto}://${host}` : undefined;
+    const SITE_URL = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || inferredOrigin || 'http://localhost:3000';
     if (!MP_ACCESS_TOKEN) {
       return NextResponse.json({ error: 'Mercado Pago not configured' }, { status: 501 });
     }
@@ -48,7 +52,18 @@ export async function POST(req: Request) {
     };
 
     const preference = new Preference(client);
-    const prefRes: any = await preference.create({ body: preferencePayload } as any);
+    let prefRes: any;
+    try {
+      prefRes = await preference.create({ body: preferencePayload } as any);
+    } catch (sdkErr: any) {
+      console.error('MercadoPago Preference.create error:', {
+        message: sdkErr?.message,
+        cause: sdkErr?.cause,
+        status: sdkErr?.status,
+        error: sdkErr,
+      });
+      return NextResponse.json({ error: 'MP Preference error', message: sdkErr?.message, status: sdkErr?.status }, { status: 500 });
+    }
 
     const init_point = prefRes.init_point || prefRes.sandbox_init_point || (prefRes.body && (prefRes.body.init_point || prefRes.body.sandbox_init_point));
     const id = prefRes.id || (prefRes.body && prefRes.body.id);
@@ -56,6 +71,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ init_point, id, orderId });
   } catch (err: any) {
     console.error('create-preference error:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Server error', message: err?.message }, { status: 500 });
   }
 }

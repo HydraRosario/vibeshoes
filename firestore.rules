@@ -33,6 +33,8 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       // Permitir que el dueño actualice campos de su propia orden (para flujo de pago)
       allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+      // Permitir eliminar órdenes solo a administradores (para panel admin)
+      allow delete: if isAdmin();
     }
 
     // Reglas para reseñas/comentarios de productos
